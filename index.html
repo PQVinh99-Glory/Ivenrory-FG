@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WHMFG PRO | Inventory Master v2.0</title>
+    <title>WHMFG | Inventory Master v2.0</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -33,7 +33,7 @@
         <p class="font-bold text-indigo-600 animate-pulse">ĐANG ĐỒNG BỘ DỮ LIỆU...</p>
     </div>
 
-    <!-- MODAL NHẬP KHO (CẬP NHẬT: THÊM CSV) -->
+    <!-- MODAL NHẬP KHO -->
     <div id="modal-inbound" class="modal">
         <div class="bg-white p-6 rounded-2xl w-[450px] shadow-2xl">
             <div class="flex justify-between items-center mb-4">
@@ -92,7 +92,7 @@
         </div>
     </div>
 
-    <!-- MODAL SỬA NHANH (CẬP NHẬT: SỬA CẢ TAGID) -->
+    <!-- MODAL SỬA NHANH -->
     <div id="modal-edit" class="modal">
         <div class="bg-white p-6 rounded-2xl w-96 shadow-2xl">
             <div class="flex justify-between items-center mb-4">
@@ -151,7 +151,6 @@
             <h3 class="text-3xl font-black text-rose-600" id="kpi-nodata">0</h3>
             <p class="text-[10px] text-rose-400 mt-2 uppercase font-bold">Không tìm thấy nguồn</p>
         </div>
-        <!-- THAY ĐỔI KPI: CẦN CHUYỂN KHO -->
         <div class="glass-card p-6 border-b-4 border-amber-500">
             <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Cần Chuyển Kho</p>
             <h3 class="text-3xl font-black text-amber-600" id="kpi-move">0</h3>
@@ -239,7 +238,6 @@
                         <th class="px-8 py-5">Stock Code</th>
                         <th class="px-6 py-5">Feature</th>
                         <th class="px-6 py-5 text-right">Actual (Qty)</th>
-                        <!-- Cột iScala ĐÃ XÓA -->
                         <th class="px-6 py-5 text-center">Warehouse</th>
                         <th class="px-6 py-5">Stock Update</th>
                         <th class="px-6 py-5">Create Date</th>
@@ -345,7 +343,6 @@
             rawData.forEach(r => {
                 totalActual += Number(r.colC) || 0;
                 if (r.colA === 'No data') noDataCount++;
-                // KPI CẦN CHUYỂN KHO: Warehouse = 62 hoặc 01
                 if (r.colE === '62' || r.colE === '01') moveCount++;
                 if (r.colH) tagFreq[r.colH] = (tagFreq[r.colH] || 0) + 1;
             });
@@ -430,7 +427,7 @@
         }
 
         // ========================================================
-        // MODULES: IMPORT/EXPORT/EDIT
+        // MODULES: IMPORT/EXPORT/EDIT (SỬA LỖI DEBUG DUPLICATE)
         // ========================================================
         async function uploadData() {
             const fMaster = document.getElementById('file-master').files[0];
@@ -439,24 +436,34 @@
             statusDiv.innerHTML = 'Đang xử lý...';
 
             try {
-                // LOGIC: XÓA TOÀN BỘ DỮ LIỆU CŨ TRƯỚC KHI UP MỚI
+                // 1. XÓA TOÀN BỘ DỮ LIỆU CŨ
                 await supabaseClient.from('master_data').delete().neq('tag_id', '0');
                 
                 Papa.parse(fMaster, {
                     header: true, skipEmptyLines: true,
                     complete: async function(results) {
-                        const formatted = results.data.map(row => ({
-                            tag_id: row['BATCH']?.trim(),
-                            lp_no: row['Stock Code']?.trim(),
-                            qty: parseFloat(row['Qty']) || 0,
-                            wh_location: row['Warehouse']?.trim(),
-                            create_date: row['CREATEDATE']?.trim()
-                        })).filter(r => r.tag_id);
+                        // 2. LỌC TRÙNG TAG ID TRONG FILE CSV TRƯỚC KHI GỬI (Fix lỗi ON CONFLICT)
+                        const uniqueDataMap = new Map();
+                        results.data.forEach(row => {
+                            const tag = row['BATCH']?.trim();
+                            if (tag) {
+                                uniqueDataMap.set(tag, {
+                                    tag_id: tag,
+                                    lp_no: row['Stock Code']?.trim(),
+                                    qty: parseFloat(row['Qty']) || 0,
+                                    wh_location: row['Warehouse']?.trim(),
+                                    create_date: row['CREATEDATE']?.trim()
+                                });
+                            }
+                        });
 
-                        const { error } = await supabaseClient.from('master_data').upsert(formatted);
+                        const formatted = Array.from(uniqueDataMap.values());
+
+                        // 3. SỬ DỤNG INSERT THAY VÌ UPSERT
+                        const { error } = await supabaseClient.from('master_data').insert(formatted);
                         if (error) statusDiv.innerHTML = `<span class="text-red-500">Lỗi: ${error.message}</span>`;
                         else {
-                            statusDiv.innerHTML = '<span class="text-emerald-500">Cập nhật thành công!</span>';
+                            statusDiv.innerHTML = `<span class="text-emerald-500">Cập nhật thành công ${formatted.length} dòng!</span>`;
                             setTimeout(() => { closeModal('modal-upload'); fetchData(); }, 1000);
                         }
                     }
@@ -466,7 +473,6 @@
             }
         }
 
-        // THÊM MỚI: NHẬP KHO BẰNG CSV
         async function uploadInboundCSV() {
             const fInbound = document.getElementById('file-inbound').files[0];
             const msg = document.getElementById('inbound-msg');
@@ -492,20 +498,81 @@
         }
 
         function exportTableToExcel() {
-            const table = document.querySelector("table");
-            const wb = XLSX.utils.table_to_book(table, { sheet: "Tồn Kho" });
+            // 1. Tạo mảng dữ liệu tùy chỉnh từ rawData để kiểm soát định dạng
+            const exportData = rawData.map(row => {
+                return {
+                    "Stock Code": String(row.colA),
+                    "Feature": String(row.colB),
+                    "Actual Qty": Number(row.colC) || 0, // Định dạng Number
+                    "Warehouse": String(row.colE),
+                    "Stock Update": row.colF, // Sẽ xử lý định dạng date bên dưới
+                    "Create Date": row.colG,  // Sẽ xử lý định dạng date bên dưới
+                    "Tag ID": String(row.colH), // Ép kiểu String để không bị hiện số mũ E+
+                    "Bin": String(row.colI)     // Ép kiểu String
+                };
+            });
+
+            // 2. Tạo worksheet từ mảng JSON
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+            // 3. TỐI ƯU ĐỊNH DẠNG CHI TIẾT (Force Text/Date/Number)
+            const range = XLSX.utils.decode_range(worksheet['!ref']);
+            
+            for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cell_address = { c: C, r: R };
+                    const cell = worksheet[XLSX.utils.encode_cell(cell_address)];
+
+                    if (!cell) continue;
+
+                    // Cột C (Actual Qty) - Cột index 2: Định dạng số
+                    if (C === 2) {
+                        cell.t = 'n'; // 'n' = number
+                    } 
+                    // Cột E, F (Stock Update, Create Date) - Cột index 4, 5: Định dạng Date
+                    else if (C === 4 || C === 5) {
+                        cell.t = 's'; // Để là string cho chính xác ngày tháng anh đã format từ View
+                        // Nếu anh muốn Excel nhận diện là ngày thực sự, ta có thể chuyển đổi 
+                        // nhưng vì dữ liệu từ View là "DD/MM/YYYY HH:mm", để String là an toàn nhất để không bị nhảy ngày.
+                    }
+                    // Tất cả các cột còn lại (Stock Code, Feature, Warehouse, TagID, Bin)
+                    else {
+                        cell.t = 's'; // 's' = string (Text)
+                        // Đặc biệt cho Tag ID và Bin: Gán thêm định dạng text cho Excel
+                        if (C === 6 || C === 7) {
+                            cell.z = '@'; // '@' là format Text trong Excel
+                        }
+                    }
+                }
+            }
+
+            // 4. Tạo workbook và xuất file
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, worksheet, "Tồn Kho");
+            
+            // Tùy chỉnh độ rộng cột cho dễ nhìn
+            worksheet['!cols'] = [
+                { wch: 20 }, // Stock Code
+                { wch: 12 }, // Feature
+                { wch: 12 }, // Actual Qty
+                { wch: 15 }, // Warehouse
+                { wch: 20 }, // Stock Update
+                { wch: 20 }, // Create Date
+                { wch: 20 }, // Tag ID
+                { wch: 15 }, // Bin
+            ];
+
             XLSX.writeFile(wb, `Inventory_Report_${new Date().toLocaleDateString()}.xlsx`);
         }
 
         async function saveEdit() {
-            const oldTag = document.getElementById('edit-tag').value; // Đây là tag lúc mở modal
+            const oldTag = document.getElementById('edit-tag').getAttribute('data-original-tag') || document.getElementById('edit-tag').value; 
             const newTag = document.getElementById('edit-tag').value;
             const newBin = document.getElementById('edit-bin').value;
             const msg = document.getElementById('edit-msg');
 
             msg.innerHTML = '<span class="text-blue-500">Đang lưu...</span>';
 
-            // Cập nhật Bin và TagID
             const { error } = await supabaseClient.from('inventory').update({ 
                 tag_id: newTag, 
                 bin: newBin 
@@ -519,7 +586,9 @@
         }
 
         function openEditModal(tag, bin) {
-            document.getElementById('edit-tag').value = tag;
+            const tagInput = document.getElementById('edit-tag');
+            tagInput.value = tag;
+            tagInput.setAttribute('data-original-tag', tag); // Lưu tag cũ để làm key update
             document.getElementById('edit-bin').value = bin;
             document.getElementById('edit-msg').innerText = '';
             openModal('modal-edit');
@@ -565,7 +634,7 @@
 </body>
     <footer class="fixed bottom-4 left-0 w-full text-center pointer-events-none">
     <p class="text-[10px] font-futuristic text-slate-500 uppercase tracking-[0.2em] opacity-50 hover:opacity-100 transition-opacity duration-500">
-        Engineered by Vinh © 2026 | System Core.
+        Engineered by Vinh © 2026 | System Inventory Data Analysis.
     </p>
 </footer>
 </html>
