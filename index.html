@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WHMFG PRO | By Vinh 4.4 (Supabase Edition)</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <!-- THÊM THƯ VIỆN SUPABASE & CSV PARSER -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* GIỮ NGUYÊN CSS CŨ CỦA ANH VÀ THÊM CSS CHO MODAL */
+        :root { --primary: #4f46e5; --bg-main: #f8fafc; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); color: #1e293b; }
+        .glass-card { background: rgba(255, 255, 255, 0.9); border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04); border: 1px solid rgba(241, 245, 249, 1); transition: all 0.4s; }
+        .glass-card:hover { transform: translateY(-4px); box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.08); border-color: #e2e8f0; }
+        .kpi-card { transition: all 0.3s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-kpi { animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; opacity: 0; }
+        .table-container::-webkit-scrollbar { height: 6px; width: 6px; }
+        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .group-header { background: linear-gradient(90deg, #f1f5f9 0%, #ffffff 100%) !important; border-left: 5px solid var(--primary); font-weight: 800; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+        .spinner { width: 48px; height: 48px; border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse-dot-red { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(225, 29, 72, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); } }
+        .dot-pulse-red { animation: pulse-dot-red 1.5s infinite; }
+        @keyframes pulse-dot-amber { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(217, 119, 6, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); } }
+        .dot-pulse-amber { animation: pulse-dot-amber 1.5s infinite; }
+        .btn-module { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+        .btn-module:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .btn-module:active { transform: scale(0.95); }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 10000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+    </style>
+</head>
+<body class="p-6 pb-20 max-w-[1600px] mx-auto">
+
+    <div id="loading">
+        <div class="spinner"></div>
+        <p class="font-bold text-indigo-600 animate-pulse">HỆ THỐNG ĐANG ĐỒNG BỘ SUPABASE...</p>
+    </div>
+
+    <!-- MODAL NHẬP KHO -->
+    <div id="modal-inbound" class="modal">
+        <div class="bg-white p-6 rounded-2xl w-96 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-black text-lg text-emerald-600 uppercase">Nhập Kho (IN)</h3>
+                <button onclick="closeModal('modal-inbound')" class="text-slate-400 hover:text-red-500 font-bold">X</button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-500">Mã Kho (WH)</label>
+                    <select id="inbound-wh" class="w-full mt-1 p-2 border rounded-xl bg-slate-50 outline-none">
+                        <option value="01">Kho 01</option>
+                        <option value="60">Kho 60</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 flex justify-between">
+                        <span>Vị Trí (Bin)</span>
+                        <label class="flex items-center gap-1 cursor-pointer text-indigo-600">
+                            <input type="checkbox" id="lock-bin" class="rounded text-indigo-600"> Khóa Vị Trí
+                        </label>
+                    </label>
+                    <input type="text" id="inbound-bin" class="w-full mt-1 p-2 border rounded-xl bg-slate-50 outline-none" placeholder="Quét vị trí...">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500">Mã Tag ID</label>
+                    <input type="text" id="inbound-tag" class="w-full mt-1 p-2 border border-emerald-400 rounded-xl bg-emerald-50 outline-none font-bold text-emerald-700" placeholder="Quét Tag ID (Enter)...">
+                </div>
+                <div id="inbound-msg" class="text-xs font-bold text-center h-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL XUẤT KHO -->
+    <div id="modal-outbound" class="modal">
+        <div class="bg-white p-6 rounded-2xl w-96 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-black text-lg text-rose-600 uppercase">Xuất Kho (OUT)</h3>
+                <button onclick="closeModal('modal-outbound')" class="text-slate-400 hover:text-red-500 font-bold">X</button>
+            </div>
+            <div>
+                <label class="text-xs font-bold text-slate-500">Mã Tag ID Cần Xuất</label>
+                <input type="text" id="outbound-tag" class="w-full mt-1 p-2 border border-rose-400 rounded-xl bg-rose-50 outline-none font-bold text-rose-700" placeholder="Quét Tag ID (Enter)...">
+            </div>
+            <div id="outbound-msg" class="text-xs font-bold text-center mt-4 h-4"></div>
+        </div>
+    </div>
+
+    <!-- MODAL UPLOAD DỮ LIỆU NGUỒN -->
+    <div id="modal-upload" class="modal">
+        <div class="bg-white p-6 rounded-2xl w-[400px] shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-black text-lg text-indigo-600 uppercase">Cập Nhật Database</h3>
+                <button onclick="closeModal('modal-upload')" class="text-slate-400 hover:text-red-500 font-bold">X</button>
+            </div>
+            <div class="space-y-4">
+                <div class="p-4 border-2 border-dashed border-indigo-200 rounded-xl bg-indigo-50">
+                    <label class="block text-xs font-bold text-indigo-800 mb-2">1. File Master Data (Nguồn)</label>
+                    <input type="file" id="file-master" accept=".csv" class="text-xs w-full">
+                    <p class="text-[10px] text-slate-500 mt-1">Cột: tag_id, lp_no, feature, qty, stock_in_date, create_date</p>
+                </div>
+                <div class="p-4 border-2 border-dashed border-blue-200 rounded-xl bg-blue-50">
+                    <label class="block text-xs font-bold text-blue-800 mb-2">2. File iScala</label>
+                    <input type="file" id="file-iscala" accept=".csv" class="text-xs w-full">
+                    <p class="text-[10px] text-slate-500 mt-1">Cột: feature, qty_iscala</p>
+                </div>
+                <button onclick="uploadData()" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-xl hover:bg-indigo-700">Tải Lên Hệ Thống</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER GIỮ NGUYÊN THEO YÊU CẦU -->
+    <header class="flex justify-between items-end mb-10">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="w-2 h-2 bg-indigo-600 rounded-full animate-ping"></span>
+                <p class="text-xs font-bold text-indigo-600 tracking-widest uppercase">Inventory Data Analysis</p>
+            </div>
+            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">WHM System <span class="text-indigo-600">Pro</span> Finished Goods</h1>
+        </div>
+        <div class="text-right">
+            <div class="flex gap-3 justify-end items-center">
+                <button onclick="openModal('modal-upload')" class="btn-module bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg mb-2">
+                    CẬP NHẬT NGUỒN
+                </button>
+                <button onclick="openModal('modal-inbound')" class="btn-module bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg mb-2">
+                    NHẬP KHO (IN)
+                </button>
+                <button onclick="openModal('modal-outbound')" class="btn-module bg-gradient-to-r from-rose-500 to-pink-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg mb-2">
+                    XUẤT KHO (OUT)
+                </button>
+                <button onclick="fetchData()" class="btn-module bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg mb-2">
+                    LÀM MỚI
+                </button>
+            </div>
+            <p class="text-sm font-medium text-slate-400 mt-2">Dữ liệu Real-time | Cập nhật: <span id="last-update" class="text-slate-700 font-bold">--:--</span></p>
+        </div>
+    </header>
+
+    <!-- HTML HIỂN THỊ KPI / BIỂU ĐỒ BÊN DƯỚI GIỮ NGUYÊN -->
+    <section class="grid grid-cols-1 md:grid-cols-5 gap-5 mb-10">
+        <div class="glass-card kpi-card p-6 border-b-4 border-indigo-500 animate-kpi" style="animation-delay: 0.1s">
+            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Tổng Tồn Kho</p>
+            <h3 class="text-3xl font-black text-slate-800" id="kpi-total-actual">0</h3>
+            <p class="text-[10px] text-slate-400 mt-2 uppercase font-bold">Thực tế tại kho (PCS)</p>
+        </div>
+        <div class="glass-card kpi-card p-6 border-b-4 border-blue-500 animate-kpi" style="animation-delay: 0.2s">
+            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Chênh Lệch Hệ Thống</p>
+            <h3 class="text-3xl font-black" id="kpi-diff">0</h3>
+            <div id="kpi-diff-percent" class="text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block">0%</div>
+        </div>
+        <div class="glass-card kpi-card p-6 border-b-4 border-rose-500 animate-kpi" style="animation-delay: 0.3s">
+            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Tag ID Không Khớp</p>
+            <h3 class="text-3xl font-black text-rose-600" id="kpi-nodata">0</h3>
+            <p class="text-[10px] text-rose-400 mt-2 uppercase font-bold">Lỗi Dữ Liệu</p>
+        </div>
+        <div class="glass-card kpi-card p-6 border-b-4 border-amber-500 animate-kpi" style="animation-delay: 0.4s">
+            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Cần Chuyển Kho</p>
+            <h3 class="text-3xl font-black text-amber-600" id="kpi-notmoved">0</h3>
+            <p class="text-[10px] text-amber-500 mt-2 font-bold">(Hiện tại: 50, 62)</p>
+        </div>
+        <div class="glass-card kpi-card p-6 border-b-4 border-red-600 animate-kpi" style="animation-delay: 0.5s">
+            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Lỗi Trùng Tag ID</p>
+            <h3 class="text-3xl font-black text-red-600" id="kpi-duplicates">0</h3>
+            <p class="text-[10px] text-red-400 mt-2 uppercase font-bold">Cần Xóa Bớt</p>
+        </div>
+    </section>
+
+    <section class="glass-card p-6 mb-10 border-t-4 border-slate-800 animate-kpi" style="animation-delay: 0.6s">
+        <div class="flex items-center gap-2 mb-6">
+            <div class="w-2 h-6 bg-slate-800 rounded-full"></div>
+            <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-widest">Trung Tâm Phân Tích Cảnh Báo Rủi Ro</h3>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-[24px] p-6 border border-rose-200 shadow-lg shadow-rose-100/50">
+                <div class="flex items-center gap-2 mb-6 pb-3 border-b border-rose-100">
+                    <span class="flex h-4 w-4 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span><span class="relative inline-flex rounded-full h-4 w-4 bg-rose-600 shadow-[0_0_10px_rgba(225,29,72,0.6)]"></span></span>
+                    <h4 class="text-rose-700 font-black uppercase text-sm tracking-widest">Cảnh Báo & Cần Ưu Tiên Xử Lý</h4>
+                </div>
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-[11px] font-extrabold text-slate-500 uppercase mb-3">Tag ID Trống Dữ Liệu (No Data)</p>
+                        <div id="analysis-no-data" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-extrabold text-slate-500 uppercase mb-3">Mã Liệu < 2 Kiện (Thiếu Hụt)</p>
+                        <div id="analysis-low-stock" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-[24px] p-6 border border-amber-200 shadow-lg shadow-amber-100/50">
+                <div class="flex items-center gap-2 mb-6 pb-3 border-b border-amber-100">
+                    <span class="w-4 h-4 bg-amber-500 rounded-full dot-pulse-amber"></span>
+                    <h4 class="text-amber-700 font-black uppercase text-sm tracking-widest">Theo Dõi & Cần Xử Lý</h4>
+                </div>
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-[11px] font-extrabold text-slate-500 uppercase mb-3">Tag ID Bị Trùng Lặp</p>
+                        <div id="analysis-duplicates" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-extrabold text-slate-500 uppercase mb-3">Mã Liệu Đang Có 3 - 5 Kiện</p>
+                        <div id="analysis-mid-stock" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+        <div class="glass-card p-6 lg:col-span-2">
+            <h3 class="text-sm font-bold text-slate-800 uppercase mb-6 flex items-center gap-2"><span class="w-1 h-4 bg-indigo-500 rounded-full"></span>So Sánh Actual vs iScala</h3>
+            <div id="chart-comparison" class="w-full h-80"></div>
+        </div>
+        <div class="glass-card p-6">
+            <h3 class="text-sm font-bold text-slate-800 uppercase mb-6 flex items-center gap-2"><span class="w-1 h-4 bg-rose-500 rounded-full"></span>Phân Tích Rủi Ro (Lệch)</h3>
+            <div id="chart-pie-risk" class="w-full h-80 flex flex-col justify-center items-center">
+                <p id="pie-empty-msg" class="text-slate-400 text-xs italic hidden text-center">Không có dữ liệu lệch.<br>Mọi thứ đang khớp!</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="glass-card overflow-hidden">
+        <div class="flex p-4 justify-between bg-white border-b">
+            <h2 class="text-xl font-extrabold text-slate-800 tracking-tight uppercase">Chi tiết tồn kho</h2>
+            <input type="text" id="filter-input" placeholder="Tìm kiếm nhanh..." class="px-4 py-2 border rounded-xl w-64 text-sm outline-none bg-slate-50">
+        </div>
+        <div class="table-container overflow-x-auto max-h-[650px]">
+            <table class="w-full text-left text-sm whitespace-nowrap border-collapse">
+                <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10 shadow-sm font-black">
+                    <tr><th class="px-8 py-5">LP NO</th><th class="px-6 py-5">FEATURE</th><th class="px-6 py-5 text-right">ACTUAL</th><th class="px-6 py-5 text-right">ISCALA</th><th class="px-6 py-5 text-center">WH LOCATION</th><th class="px-6 py-5">STOCK IN DATE</th><th class="px-6 py-5">CREATE DATE</th><th class="px-6 py-5">TAG ID</th><th class="px-6 py-5">BIN</th></tr>
+                </thead>
+                <tbody id="table-body" class="divide-y divide-slate-100 font-medium text-slate-700"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // ========================================================
+        // 1. CẤU HÌNH SUPABASE (ANH ĐIỀN THÔNG TIN CỦA ANH VÀO ĐÂY)
+        // ========================================================
+        const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
+        const SUPABASE_KEY = 'YOUR_ANON_KEY';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let rawData = [];
+        let summaryData = [];
+        let chartBar, chartPie;
+
+        // ========================================================
+        // 2. TÍCH HỢP REAL-TIME TỰ ĐỘNG CẬP NHẬT
+        // ========================================================
+        supabase.channel('custom-all-channel')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, payload => {
+                console.log('Có thay đổi từ kho, đang tải lại...', payload);
+                fetchData();
+            })
+            .subscribe();
+
+        window.onload = function() { fetchData(); };
+
+        // ========================================================
+        // 3. LOGIC LẤY DỮ LIỆU TỪ VIEW THẦN TỐC (GIỐNG GAS CŨ)
+        // ========================================================
+        async function fetchData() {
+            document.getElementById('loading').style.display = 'flex';
+            try {
+                // Gọi tới View đã ánh xạ sẵn VLOOKUP
+                const { data, error } = await supabase.from('vw_kho_thanh_pham').select('*');
+                if (error) throw error;
+                
+                rawData = data;
+                summaryData = processSummaryData(data); // Phân tích iScala vs Actual
+                
+                document.getElementById('last-update').innerText = new Date().toLocaleTimeString('vi-VN');
+                initDashboard();
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                alert("Lỗi tải dữ liệu: " + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Tái tạo thuật toán tính tổng Actual và iScala dựa vào dữ liệu View
+        function processSummaryData(data) {
+            let map = {};
+            data.forEach(r => {
+                const feat = r.colB;
+                if(feat && feat !== 'No data') {
+                    if(!map[feat]) map[feat] = { feature: feat, actual: 0, iscala: Number(r.colD) || 0 };
+                    map[feat].actual += Number(r.colC) || 0;
+                }
+            });
+            return Object.values(map);
+        }
+
+        // ========================================================
+        // 4. MODULE NHẬP KHO VÀ XUẤT KHO THÔNG MINH
+        // ========================================================
+        function openModal(id) { 
+            document.getElementById(id).classList.add('active'); 
+            if(id === 'modal-inbound') setTimeout(() => document.getElementById('inbound-bin').focus(), 100);
+            if(id === 'modal-outbound') setTimeout(() => document.getElementById('outbound-tag').focus(), 100);
+        }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        // LOGIC NHẬP KHO (IN)
+        document.getElementById('inbound-bin').addEventListener('keydown', function(e) {
+            if(e.key === 'Enter') document.getElementById('inbound-tag').focus();
+        });
+
+        document.getElementById('inbound-tag').addEventListener('keydown', async function(e) {
+            if(e.key === 'Enter') {
+                const bin = document.getElementById('inbound-bin').value;
+                const tag = this.value;
+                const wh = document.getElementById('inbound-wh').value;
+                const msg = document.getElementById('inbound-msg');
+                
+                if(!bin || !tag) return;
+                
+                msg.innerHTML = '<span class="text-blue-500">Đang lưu...</span>';
+                const { error } = await supabase.from('inventory').insert([{ tag_id: tag, bin: bin, wh_location: wh }]);
+                
+                if (error) {
+                    msg.innerHTML = `<span class="text-red-500">Lỗi: ${error.message}</span>`;
+                } else {
+                    msg.innerHTML = `<span class="text-emerald-500">Đã nhập Tag: ${tag} vào ${bin}</span>`;
+                    this.value = ''; // Xoá ô Tag để quét tiếp
+                    if(!document.getElementById('lock-bin').checked) {
+                        document.getElementById('inbound-bin').value = '';
+                        document.getElementById('inbound-bin').focus();
+                    } else {
+                        this.focus();
+                    }
+                }
+            }
+        });
+
+        // LOGIC XUẤT KHO (OUT)
+        document.getElementById('outbound-tag').addEventListener('keydown', async function(e) {
+            if(e.key === 'Enter') {
+                const tag = this.value;
+                const msg = document.getElementById('outbound-msg');
+                if(!tag) return;
+
+                msg.innerHTML = '<span class="text-blue-500">Đang xuất...</span>';
+                // Xoá khỏi kho và đưa vào lịch sử
+                const { error } = await supabase.from('inventory').delete().eq('tag_id', tag);
+                await supabase.from('inventory_out').insert([{ tag_id: tag }]); // Ghi log
+
+                if (error) {
+                    msg.innerHTML = `<span class="text-red-500">Lỗi: ${error.message}</span>`;
+                } else {
+                    msg.innerHTML = `<span class="text-rose-500">Đã xuất Tag: ${tag}</span>`;
+                    this.value = '';
+                    this.focus();
+                }
+            }
+        });
+
+        // ========================================================
+        // 5. LOGIC UPLOAD DỮ LIỆU NGUỒN CSV
+        // ========================================================
+        async function uploadData() {
+            const fMaster = document.getElementById('file-master').files[0];
+            const fIscala = document.getElementById('file-iscala').files[0];
+            
+            if(fMaster) {
+                Papa.parse(fMaster, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: async function(results) {
+                        await supabase.from('master_data').upsert(results.data);
+                        alert('Up Master Data thành công!');
+                    }
+                });
+            }
+            if(fIscala) {
+                Papa.parse(fIscala, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: async function(results) {
+                        await supabase.from('iscala_data').upsert(results.data);
+                        alert('Up iScala thành công!');
+                    }
+                });
+            }
+        }
+
+        // ========================================================
+        // 6. GIỮ NGUYÊN 100% CÁC THUẬT TOÁN PHÂN TÍCH CỦA ANH
+        // ========================================================
+        function updateKPIs(summary) {
+            let totalActual = 0, totalIscala = 0;
+            summary.forEach(row => { totalActual += row.actual; totalIscala += row.iscala; });
+            document.getElementById('kpi-total-actual').innerText = totalActual.toLocaleString();
+            let diff = totalActual - totalIscala;
+            let diffPercent = totalIscala !== 0 ? ((diff / totalIscala) * 100).toFixed(1) : (totalActual > 0 ? 100 : 0);
+            
+            const diffEl = document.getElementById('kpi-diff');
+            const diffPercentEl = document.getElementById('kpi-diff-percent');
+            diffEl.innerText = (diff > 0 ? "+" : "") + diff.toLocaleString();
+            diffPercentEl.innerText = `${diffPercent}% so với hệ thống`;
+            
+            if (diff === 0) {
+                diffEl.className = "text-3xl font-black text-emerald-500";
+                diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-emerald-50 text-emerald-600";
+            } else if (Math.abs(diffPercent) < 5) {
+                diffEl.className = "text-3xl font-black text-amber-500";
+                diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-amber-50 text-amber-600";
+            } else {
+                diffEl.className = "text-3xl font-black text-rose-600";
+                diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-rose-600 text-white";
+            }
+        }
+
+        function updateOtherKPIs(details) {
+            let countNotMoved = 0; let tagIdFreq = {}; let noDataTags = [];
+            details.forEach(row => {
+                if (String(row.colE).toLowerCase().includes("no data")) noDataTags.push(row.colH || "N/A");
+                if (String(row.colE).includes("50") || String(row.colE).includes("62")) countNotMoved++;
+                if (row.colH) tagIdFreq[row.colH] = (tagIdFreq[row.colH] || 0) + 1;
+            });
+            document.getElementById('kpi-nodata').innerText = noDataTags.length;
+            document.getElementById('kpi-notmoved').innerText = countNotMoved;
+            let duplicateTags = Object.keys(tagIdFreq).filter(tag => tagIdFreq[tag] > 1);
+            document.getElementById('kpi-duplicates').innerText = duplicateTags.length;
+        }
+
+        function groupDataByColB(data) {
+            let groups = {};
+            data.forEach(row => {
+                if (!groups[row.colB]) groups[row.colB] = { rows:[], sumActual: 0, sumIscala: 0, maxActual: 0 };
+                groups[row.colB].rows.push(row);
+                let act = Number(row.colC) || 0;
+                let isc = row.colD === "No data" ? 0 : Number(row.colD) || 0;
+                groups[row.colB].sumActual += act;
+                // Chỉ gán iscala 1 lần cho Group vì view trả nhiều dòng
+                groups[row.colB].sumIscala = isc; 
+                if (act > groups[row.colB].maxActual) groups[row.colB].maxActual = act;
+            });
+            return groups;
+        }
+
+        function renderAnalysisPanel(data) {
+            const grouped = groupDataByColB(data);
+            
+            // Phân tích No Data
+            const noDataTags = data.filter(r => String(r.colE).toLowerCase().includes("no data") || String(r.colB).toLowerCase().includes("no data")).map(r => r.colH);
+            document.getElementById('analysis-no-data').innerHTML = noDataTags.length > 0 ? noDataTags.map(t => `<div class="badge-warning inline-flex items-center gap-2 px-3 py-1.5 bg-rose-50 border border-rose-200 rounded-lg"><span class="w-2 h-2 rounded-full bg-rose-600 dot-pulse-red"></span><span class="text-[11px] font-black text-rose-700">${t}</span></div>`).join('') : '<span class="text-xs text-slate-400 italic">An toàn</span>';
+            
+            // Phân tích kiện < 2
+            const lowStock = Object.keys(grouped).map(key => {
+                const g = grouped[key];
+                const kien = g.maxActual > 0 ? Math.ceil((g.sumActual / 2) / g.maxActual) : 0;
+                return { key, kien };
+            }).filter(item => item.kien > 0 && item.kien < 2 && item.key !== 'No data');
+            document.getElementById('analysis-low-stock').innerHTML = lowStock.length > 0 ? lowStock.map(item => `<div class="badge-warning inline-flex items-center gap-2 px-3 py-1.5 bg-rose-50 border border-rose-200 rounded-lg"><span class="w-2 h-2 rounded-full bg-rose-600 dot-pulse-red"></span><span class="text-[11px] font-black text-rose-800">${item.key}: <span class="text-rose-600">${item.kien} Kiện</span></span></div>`).join('') : '<span class="text-xs text-slate-400 italic">Đã đủ số lượng</span>';
+
+            // Phân tích trùng Tag ID
+            let tagFreq = {}; data.forEach(r => { if(r.colH) tagFreq[r.colH] = (tagFreq[r.colH] || 0) + 1; });
+            const dups = Object.keys(tagFreq).filter(t => tagFreq[t] > 1);
+            document.getElementById('analysis-duplicates').innerHTML = dups.length > 0 ? dups.map(t => `<div class="badge-warning inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg"><span class="w-2 h-2 rounded-full bg-amber-500 dot-pulse-amber"></span><span class="text-[11px] font-black text-amber-800">${t} (x${tagFreq[t]})</span></div>`).join('') : '<span class="text-xs text-slate-400 italic">Không có mã trùng</span>';
+
+            // Phân tích kiện 3-5
+            const midStock = Object.keys(grouped).map(key => {
+                const g = grouped[key];
+                const kien = g.maxActual > 0 ? Math.ceil((g.sumActual / 2) / g.maxActual) : 0;
+                return { key, kien };
+            }).filter(item => item.kien >= 3 && item.kien <= 5 && item.key !== 'No data');
+            document.getElementById('analysis-mid-stock').innerHTML = midStock.length > 0 ? midStock.map(item => `<div class="badge-warning inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg"><span class="w-2 h-2 rounded-full bg-amber-500 dot-pulse-amber"></span><span class="text-[11px] font-black text-amber-800">${item.key}: <span class="text-amber-600">${item.kien} Kiện</span></span></div>`).join('') : '<span class="text-xs text-slate-400 italic">Không có</span>';
+        }
+
+        function renderTable(dataToRender) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            const groupedData = groupDataByColB(dataToRender);
+            Object.keys(groupedData).sort().forEach(groupKey => {
+                const group = groupedData[groupKey];
+                let kienCount = group.maxActual > 0 ? (group.sumActual / 2) / group.maxActual : 0;
+                
+                let groupRow = document.createElement('tr');
+                groupRow.className = 'group-header';
+                groupRow.innerHTML = `<td class="px-8 py-4 font-extrabold text-indigo-700">MÃ: ${groupKey}</td><td class="px-6 py-4 text-xs font-bold text-slate-500">${parseFloat(kienCount.toFixed(2))} Kiện</td><td class="px-6 py-4 font-black text-slate-800 text-right">${group.sumActual.toLocaleString()}</td><td class="px-6 py-4 font-black text-slate-800 text-right">${group.sumIscala.toLocaleString()}</td><td colspan="5"></td>`;
+                tbody.appendChild(groupRow);
+                
+                group.rows.forEach(row => {
+                    let whLocDisplay = String(row.colE).toLowerCase().includes("no data") ? `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-rose-600 text-white animate-pulse">No Data</span>` : `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-white border">${row.colE}</span>`;
+                    let detailRow = document.createElement('tr');
+                    detailRow.className = 'hover:bg-slate-50 border-b border-slate-100';
+                    detailRow.innerHTML = `<td class="px-8 py-4 text-xs">${row.colA}</td><td class="px-6 py-4 text-[11px]">${row.colB}</td><td class="px-6 py-4 text-right font-bold">${Number(row.colC).toLocaleString()}</td><td class="px-6 py-4 text-right">${row.colD}</td><td class="px-6 py-4 text-center">${whLocDisplay}</td><td class="px-6 py-4 text-xs">${row.colF}</td><td class="px-6 py-4 text-[10px]">${row.colG}</td><td class="px-6 py-4 text-xs font-mono text-indigo-400">${row.colH}</td><td class="px-6 py-4 text-xs">${row.colI || '-'}</td>`;
+                    tbody.appendChild(detailRow);
+                });
+            });
+        }
+
+        function renderCharts(summary) {
+            const labels = [], dataActual = [], dataIscala = [], dataTrend = [];
+            const pieLabels = [], pieData = [];
+            
+            summary.sort((a,b) => a.feature.localeCompare(b.feature)).forEach(row => {
+                labels.push(row.feature); dataActual.push(row.actual); dataIscala.push(row.iscala);
+                let trend = row.iscala > 0 ? ((row.actual - row.iscala) / row.iscala) * 100 : (row.actual > 0 ? 100 : 0);
+                dataTrend.push(trend.toFixed(1));
+                if (row.actual !== row.iscala) { pieLabels.push(row.feature); pieData.push(Math.abs(row.actual - row.iscala)); }
+            });
+
+            const barOptions = { series:[{ name: 'Thực Tế', type: 'column', data: dataActual }, { name: 'Hệ Thống', type: 'column', data: dataIscala }, { name: 'Chênh Lệch %', type: 'line', data: dataTrend }], chart: { height: 320, type: 'line' }, colors:['#4f46e5', '#94a3b8', '#f43f5e'], xaxis: { categories: labels }, yaxis:[{ title: { text: 'PCS' } }, { show: false }, { opposite: true }] };
+            if (chartBar) chartBar.destroy(); chartBar = new ApexCharts(document.querySelector("#chart-comparison"), barOptions); chartBar.render();
+
+            if (pieData.length > 0) {
+                document.getElementById('pie-empty-msg').classList.add('hidden');
+                const pieOptions = { series: pieData, labels: pieLabels, chart: { type: 'donut', height: 320 }, colors:['#f43f5e', '#fb923c', '#fbbf24', '#38bdf8', '#818cf8'], plotOptions: { pie: { donut: { labels: { show: true, total: { show: true, label: 'LỆCH TỔNG' } } } } } };
+                if (chartPie) chartPie.destroy(); chartPie = new ApexCharts(document.querySelector("#chart-pie-risk"), pieOptions); chartPie.render();
+            } else {
+                document.getElementById('pie-empty-msg').classList.remove('hidden');
+                if (chartPie) chartPie.destroy();
+            }
+        }
+
+        document.getElementById('filter-input').addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            const filtered = rawData.filter(r => String(r.colA).toLowerCase().includes(keyword) || String(r.colH).toLowerCase().includes(keyword) || String(r.colB).toLowerCase().includes(keyword));
+            renderTable(filtered);
+        });
+
+        function initDashboard() {
+            updateKPIs(summaryData);
+            updateOtherKPIs(rawData);
+            renderAnalysisPanel(rawData);
+            renderTable(rawData);
+            renderCharts(summaryData);
+        }
+    </script>
+</body>
+</html>
