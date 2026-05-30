@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WHMFG | Inventory Master v2.0</title>
+    <title>WHMFG PRO | Inventory Analytics v3.0</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -13,17 +13,67 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #4f46e5; --bg-main: #f8fafc; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); color: #1e293b; }
-        .glass-card { background: rgba(255, 255, 255, 0.9); border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04); border: 1px solid rgba(241, 245, 249, 1); transition: all 0.4s; }
-        .group-header { background: linear-gradient(90deg, #f1f5f9 0%, #ffffff 100%) !important; border-left: 5px solid var(--primary); font-weight: 800; }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-        .spinner { width: 48px; height: 48px; border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        :root { 
+            --primary: #4f46e5; 
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 50%, #f1f5f9 100%);
+        }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg-gradient); 
+            background-attachment: fixed;
+            color: #1e293b; 
+            min-height: 100vh;
+        }
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.7); 
+            backdrop-filter: blur(12px);
+            border-radius: 24px; 
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05); 
+            border: 1px solid rgba(255, 255, 255, 0.5); 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .glass-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1); 
+            background: rgba(255, 255, 255, 0.9);
+        }
+        .group-header { 
+            background: linear-gradient(90deg, #eef2ff 0%, #ffffff 100%) !important; 
+            border-left: 6px solid var(--primary); 
+            font-weight: 800; 
+        }
+        #loading { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; 
+        }
+        .spinner { 
+            width: 50px; height: 50px; border: 6px solid #e2e8f0; border-top: 6px solid var(--primary); 
+            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; 
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 10000; justify-content: center; align-items: center; }
-        .modal.active { display: flex; }
-        .btn-module { transition: all 0.3s; cursor: pointer; }
-        .btn-module:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        
+        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(6px); z-index: 10000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; animation: fadeIn 0.3s ease; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        .sticky-header {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        /* Custom Animations */
+        .animate-fade-up {
+            animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            opacity: 0;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="p-6 pb-20 max-w-[1600px] mx-auto">
@@ -33,7 +83,159 @@
         <p class="font-bold text-indigo-600 animate-pulse">ĐANG ĐỒNG BỘ DỮ LIỆU...</p>
     </div>
 
-    <!-- MODAL NHẬP KHO -->
+    <!-- STICKY HEADER -->
+    <header class="sticky-header p-6 mb-10 rounded-3xl flex justify-between items-end shadow-sm">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="w-2 h-2 bg-indigo-600 rounded-full animate-ping"></span>
+                <p class="text-xs font-bold text-indigo-600 tracking-widest uppercase">Inventory Data Analytics v3.0</p>
+            </div>
+            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">WHM System <span class="text-indigo-600">Pro</span></h1>
+        </div>
+        <div class="text-right">
+            <div class="flex gap-3 justify-end items-center">
+                <button onclick="openModal('modal-upload')" class="btn-module bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md hover:bg-indigo-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                    CẬP NHẬT NGUỒN
+                </button>
+                <button onclick="openModal('modal-inbound')" class="btn-module bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md hover:bg-emerald-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                    NHẬP KHO (IN)
+                </button>
+                <button onclick="openModal('modal-outbound')" class="btn-module bg-rose-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md hover:bg-rose-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    XUẤT KHO (OUT)
+                </button>
+                <button onclick="fetchData()" class="btn-module bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md hover:bg-slate-900">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    LÀM MỚI
+                </button>
+            </div>
+            <p class="text-sm font-medium text-slate-400 mt-2">Cập nhật cuối: <span id="last-update" class="text-slate-700 font-bold">--:--</span></p>
+        </div>
+    </header>
+
+    <!-- KPI CARDS (REDESIGNED) -->
+    <section class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-10">
+        <div class="glass-card p-6 border-b-4 border-indigo-500 animate-fade-up" style="animation-delay: 0.1s">
+            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Tổng Tồn Thực Tế</p>
+            <h3 class="text-3xl font-black text-slate-800" id="kpi-total-actual">0</h3>
+            <p class="text-[10px] text-slate-400 mt-2 uppercase font-bold">PCS (Thực tế quét)</p>
+        </div>
+        <div class="glass-card p-6 border-b-4 border-blue-500 animate-fade-up" style="animation-delay: 0.2s">
+            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Chênh Lệch Hệ Thống</p>
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-3xl font-black" id="kpi-diff">0</h3>
+                <span id="kpi-diff-percent" class="text-xs font-bold px-2 py-0.5 rounded-full">0%</span>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-2 uppercase font-bold">So với iScala</p>
+        </div>
+        <div class="glass-card p-6 border-b-4 border-rose-500 animate-fade-up" style="animation-delay: 0.3s">
+            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Tag ID No Data</p>
+            <h3 class="text-3xl font-black text-rose-600" id="kpi-nodata">0</h3>
+            <p class="text-[10px] text-rose-400 mt-2 uppercase font-bold">Lỗi nguồn dữ liệu</p>
+        </div>
+        <div class="glass-card p-6 border-b-4 border-amber-500 animate-fade-up" style="animation-delay: 0.4s">
+            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Cần Chuyển Kho</p>
+            <h3 class="text-3xl font-black text-amber-600" id="kpi-move">0</h3>
+            <p class="text-[10px] text-amber-500 mt-2 font-bold">(Kho 62 & 01)</p>
+        </div>
+        <div class="glass-card p-6 border-b-4 border-red-600 animate-fade-up" style="animation-delay: 0.5s">
+            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Tag Trùng Lặp</p>
+            <h3 class="text-3xl font-black text-red-600" id="kpi-duplicates">0</h3>
+            <p class="text-[10px] text-red-400 mt-2 uppercase font-bold">Cần kiểm tra</p>
+        </div>
+    </section>
+
+    <!-- ANALYSIS PANEL -->
+    <section class="glass-card p-6 mb-10 border-t-4 border-slate-800 animate-fade-up" style="animation-delay: 0.6s">
+        <div class="flex items-center gap-2 mb-6">
+            <div class="w-2 h-6 bg-slate-800 rounded-full"></div>
+            <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-widest">Trung Tâm Cảnh Báo Rủi Ro</h3>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white/50 rounded-[24px] p-6 border border-rose-200 shadow-sm">
+                <div class="flex items-center gap-2 mb-6 pb-3 border-b border-rose-100">
+                    <span class="flex h-4 w-4 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span><span class="relative inline-flex rounded-full h-4 w-4 bg-rose-600"></span></span>
+                    <h4 class="text-rose-700 font-black uppercase text-sm tracking-widest">Ưu Tiên Xử Lý (No Data & 1 Kiện)</h4>
+                </div>
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-[11px] font-extrabold text-slate-500 uppercase mb-3">Tag ID Lỗi No Data</p>
+                        <div id="analysis-no-data" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-extrabold text-slate-500 uppercase mb-3">Feature Thiếu Hụt (1 Kiện)</p>
+                        <div id="analysis-low-stock" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white/50 rounded-[24px] p-6 border border-amber-200 shadow-sm">
+                <div class="flex items-center gap-2 mb-6 pb-3 border-b border-amber-100">
+                    <span class="w-4 h-4 bg-amber-500 rounded-full animate-pulse"></span>
+                    <h4 class="text-amber-700 font-black uppercase text-sm tracking-widest">Theo Dõi Gần (3-5 Kiện & Trùng Tag)</h4>
+                </div>
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-[11px] font-extrabold text-slate-500 uppercase mb-3">Tag ID Bị Trùng</p>
+                        <div id="analysis-duplicates" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-extrabold text-slate-500 uppercase mb-3">Feature Sắp Hết (3-5 Kiện)</p>
+                        <div id="analysis-mid-stock" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CHARTS -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+        <div class="glass-card p-6 lg:col-span-2 animate-fade-up" style="animation-delay: 0.7s">
+            <h3 class="text-sm font-bold text-slate-800 uppercase mb-6 flex items-center gap-2"><span class="w-1 h-4 bg-indigo-500 rounded-full"></span>Actual vs iScala & % Chênh Lệch</h3>
+            <div id="chart-comparison" class="w-full h-96"></div>
+        </div>
+        <div class="glass-card p-6 animate-fade-up" style="animation-delay: 0.8s">
+            <h3 class="text-sm font-bold text-slate-800 uppercase mb-6 flex items-center gap-2"><span class="w-1 h-4 bg-rose-500 rounded-full"></span>Phân Tích Rủi Ro (Lệch)</h3>
+            <div id="chart-pie-risk" class="w-full h-96 flex flex-col justify-center items-center">
+                <p id="pie-empty-msg" class="text-slate-400 text-xs italic hidden text-center">Không có dữ liệu lệch.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- TABLE -->
+    <div class="glass-card overflow-hidden animate-fade-up" style="animation-delay: 0.9s">
+        <div class="flex p-4 justify-between bg-white/50 border-b items-center">
+            <h2 class="text-xl font-extrabold text-slate-800 tracking-tight uppercase">Bảng chi tiết tồn kho thành phẩm</h2>
+            <div class="flex gap-2">
+                <button onclick="exportTableToExcel()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-emerald-700 shadow-lg transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    XUẤT EXCEL
+                </button>
+                <input type="text" id="filter-input" placeholder="Tìm nhanh Bin, Tag, Feature..." class="px-4 py-2 border rounded-xl w-64 text-sm outline-none bg-white/80 focus:ring-2 ring-indigo-500 transition-all">
+            </div>
+        </div>
+        <div class="table-container overflow-x-auto max-h-[650px]">
+            <table class="w-full text-left text-sm whitespace-nowrap border-collapse">
+                <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10 shadow-sm font-black">
+                    <tr>
+                        <th class="px-8 py-5">Stock Code</th>
+                        <th class="px-6 py-5">Feature</th>
+                        <th class="px-6 py-5 text-right">Actual (Qty)</th>
+                        <th class="px-6 py-5 text-center">Warehouse</th>
+                        <th class="px-6 py-5">Stock Update</th>
+                        <th class="px-6 py-5">Create Date</th>
+                        <th class="px-6 py-5">Tag ID</th>
+                        <th class="px-6 py-5">Bin</th>
+                        <th class="px-6 py-5 text-center">HÀNH ĐỘNG</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body" class="divide-y divide-slate-100 font-medium text-slate-700"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODALS (GIỮ NGUYÊN CẤU TRÚC NHƯNG THÊM ANIMATION) -->
     <div id="modal-inbound" class="modal">
         <div class="bg-white p-6 rounded-2xl w-[450px] shadow-2xl">
             <div class="flex justify-between items-center mb-4">
@@ -58,7 +260,6 @@
         </div>
     </div>
 
-    <!-- MODAL XUẤT KHO -->
     <div id="modal-outbound" class="modal">
         <div class="bg-white p-6 rounded-2xl w-96 shadow-2xl">
             <div class="flex justify-between items-center mb-4">
@@ -73,7 +274,6 @@
         </div>
     </div>
 
-    <!-- MODAL CẬP NHẬT NGUỒN -->
     <div id="modal-upload" class="modal">
         <div class="bg-white p-6 rounded-2xl w-[400px] shadow-2xl">
             <div class="flex justify-between items-center mb-4">
@@ -92,7 +292,6 @@
         </div>
     </div>
 
-    <!-- MODAL SỬA NHANH -->
     <div id="modal-edit" class="modal">
         <div class="bg-white p-6 rounded-2xl w-96 shadow-2xl">
             <div class="flex justify-between items-center mb-4">
@@ -111,143 +310,6 @@
                 <div id="edit-msg" class="text-xs font-bold text-center h-4"></div>
                 <button onclick="saveEdit()" class="w-full bg-amber-500 text-white font-bold py-2 rounded-xl hover:bg-amber-600 shadow-lg">Lưu Thay Đổi</button>
             </div>
-        </div>
-    </div>
-
-    <!-- HEADER -->
-    <header class="flex justify-between items-end mb-10">
-        <div>
-            <div class="flex items-center gap-2 mb-1">
-                <span class="w-2 h-2 bg-indigo-600 rounded-full animate-ping"></span>
-                <p class="text-xs font-bold text-indigo-600 tracking-widest uppercase">Inventory Data Analysis</p>
-            </div>
-            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">WHM System <span class="text-indigo-600">Pro</span></h1>
-        </div>
-        <div class="text-right">
-            <div class="flex gap-3 justify-end items-center">
-                <button onclick="openModal('modal-upload')" class="btn-module bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg">CẬP NHẬT NGUỒN</button>
-                <button onclick="openModal('modal-inbound')" class="btn-module bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg">NHẬP KHO (IN)</button>
-                <button onclick="openModal('modal-outbound')" class="btn-module bg-gradient-to-r from-rose-500 to-pink-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg">XUẤT KHO (OUT)</button>
-                <button onclick="fetchData()" class="btn-module bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg">LÀM MỚI</button>
-            </div>
-            <p class="text-sm font-medium text-slate-400 mt-2">Cập nhật: <span id="last-update" class="text-slate-700 font-bold">--:--</span></p>
-        </div>
-    </header>
-
-    <!-- KPI CARDS -->
-    <section class="grid grid-cols-1 md:grid-cols-5 gap-5 mb-10">
-        <div class="glass-card p-6 border-b-4 border-indigo-500">
-            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Tổng Tồn Thực Tế</p>
-            <h3 class="text-3xl font-black text-slate-800" id="kpi-total-actual">0</h3>
-            <p class="text-[10px] text-slate-400 mt-2 uppercase font-bold">PCS (Thực tế quét)</p>
-        </div>
-        <div class="glass-card p-6 border-b-4 border-blue-500">
-            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Chênh Lệch Hệ Thống</p>
-            <h3 class="text-3xl font-black" id="kpi-diff">0</h3>
-            <div id="kpi-diff-percent" class="text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block">0%</div>
-        </div>
-        <div class="glass-card p-6 border-b-4 border-rose-500">
-            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Tag ID No Data</p>
-            <h3 class="text-3xl font-black text-rose-600" id="kpi-nodata">0</h3>
-            <p class="text-[10px] text-rose-400 mt-2 uppercase font-bold">Không tìm thấy nguồn</p>
-        </div>
-        <div class="glass-card p-6 border-b-4 border-amber-500">
-            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Cần Chuyển Kho</p>
-            <h3 class="text-3xl font-black text-amber-600" id="kpi-move">0</h3>
-            <p class="text-[10px] text-amber-500 mt-2 font-bold">(Kho 62 & 01)</p>
-        </div>
-        <div class="glass-card p-6 border-b-4 border-red-600">
-            <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Tag Trùng Lặp</p>
-            <h3 class="text-3xl font-black text-red-600" id="kpi-duplicates">0</h3>
-            <p class="text-[10px] text-red-400 mt-2 uppercase font-bold">Cần kiểm tra lại</p>
-        </div>
-    </section>
-
-    <!-- ANALYSIS PANEL -->
-    <section class="glass-card p-6 mb-10 border-t-4 border-slate-800">
-        <div class="flex items-center gap-2 mb-6">
-            <div class="w-2 h-6 bg-slate-800 rounded-full"></div>
-            <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-widest">Trung Tâm Cảnh Báo Rủi Ro</h3>
-        </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white rounded-[24px] p-6 border border-rose-200 shadow-lg shadow-rose-100/50">
-                <div class="flex items-center gap-2 mb-6 pb-3 border-b border-rose-100">
-                    <span class="flex h-4 w-4 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span><span class="relative inline-flex rounded-full h-4 w-4 bg-rose-600 shadow-[0_0_10px_rgba(225,29,72,0.6)]"></span></span>
-                    <h4 class="text-rose-700 font-black uppercase text-sm tracking-widest">Ưu Tiên Xử Lý (No Data & 1 Kiện)</h4>
-                </div>
-                <div class="space-y-6">
-                    <div>
-                        <p class="text-[11px] font-extrabold text-slate-500 uppercase mb-3">Tag ID Lỗi No Data</p>
-                        <div id="analysis-no-data" class="flex flex-wrap gap-2"></div>
-                    </div>
-                    <div>
-                        <p class="text-[11px] font-extrabold text-slate-500 uppercase mb-3">Feature Thiếu Hụt (1 Kiện)</p>
-                        <div id="analysis-low-stock" class="flex flex-wrap gap-2"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white rounded-[24px] p-6 border border-amber-200 shadow-lg shadow-amber-100/50">
-                <div class="flex items-center gap-2 mb-6 pb-3 border-b border-amber-100">
-                    <span class="w-4 h-4 bg-amber-500 rounded-full"></span>
-                    <h4 class="text-amber-700 font-black uppercase text-sm tracking-widest">Theo Dõi Gần (3-5 Kiện & Trùng Tag)</h4>
-                </div>
-                <div class="space-y-6">
-                    <div>
-                        <p class="text-[11px] font-extrabold text-slate-500 uppercase mb-3">Tag ID Bị Trùng</p>
-                        <div id="analysis-duplicates" class="flex flex-wrap gap-2"></div>
-                    </div>
-                    <div>
-                        <p class="text-[11px] font-extrabold text-slate-500 uppercase mb-3">Feature Sắp Hết (3-5 Kiện)</p>
-                        <div id="analysis-mid-stock" class="flex flex-wrap gap-2"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CHARTS -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-        <div class="glass-card p-6 lg:col-span-2">
-            <h3 class="text-sm font-bold text-slate-800 uppercase mb-6 flex items-center gap-2"><span class="w-1 h-4 bg-indigo-500 rounded-full"></span>Actual vs iScala (Theo Feature)</h3>
-            <div id="chart-comparison" class="w-full h-80"></div>
-        </div>
-        <div class="glass-card p-6">
-            <h3 class="text-sm font-bold text-slate-800 uppercase mb-6 flex items-center gap-2"><span class="w-1 h-4 bg-rose-500 rounded-full"></span>Phân Tích Lệch (Pie)</h3>
-            <div id="chart-pie-risk" class="w-full h-80 flex flex-col justify-center items-center">
-                <p id="pie-empty-msg" class="text-slate-400 text-xs italic hidden text-center">Không có dữ liệu lệch.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- TABLE -->
-    <div class="glass-card overflow-hidden">
-        <div class="flex p-4 justify-between bg-white border-b items-center">
-            <h2 class="text-xl font-extrabold text-slate-800 tracking-tight uppercase">Bảng chi tiết tồn kho thành phẩm</h2>
-            <div class="flex gap-2">
-                <button onclick="exportTableToExcel()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-emerald-700 shadow-lg transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                    XUẤT EXCEL
-                </button>
-                <input type="text" id="filter-input" placeholder="Tìm kiếm nhanh..." class="px-4 py-2 border rounded-xl w-64 text-sm outline-none bg-slate-50">
-            </div>
-        </div>
-        <div class="table-container overflow-x-auto max-h-[650px]">
-            <table class="w-full text-left text-sm whitespace-nowrap border-collapse">
-                <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10 shadow-sm font-black">
-                    <tr>
-                        <th class="px-8 py-5">Stock Code</th>
-                        <th class="px-6 py-5">Feature</th>
-                        <th class="px-6 py-5 text-right">Actual (Qty)</th>
-                        <th class="px-6 py-5 text-center">Warehouse</th>
-                        <th class="px-6 py-5">Stock Update</th>
-                        <th class="px-6 py-5">Create Date</th>
-                        <th class="px-6 py-5">Tag ID</th>
-                        <th class="px-6 py-5">Bin</th>
-                        <th class="px-6 py-5 text-center">HÀNH ĐỘNG</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body" class="divide-y divide-slate-100 font-medium text-slate-700"></tbody>
-            </table>
         </div>
     </div>
 
@@ -354,8 +416,24 @@
             
             let diff = totalActual - totalIscala;
             let diffPercent = totalIscala !== 0 ? ((diff / totalIscala) * 100).toFixed(1) : 0;
-            document.getElementById('kpi-diff').innerText = (diff > 0 ? "+" : "") + diff.toLocaleString();
-            document.getElementById('kpi-diff-percent').innerText = `${diffPercent}%`;
+            
+            const diffEl = document.getElementById('kpi-diff');
+            const percEl = document.getElementById('kpi-diff-percent');
+            
+            diffEl.innerText = (diff > 0 ? "+" : "") + diff.toLocaleString();
+            percEl.innerText = `${diffPercent}%`;
+
+            // Màu sắc theo chênh lệch
+            if (diff === 0) {
+                diffEl.className = "text-3xl font-black text-emerald-500";
+                percEl.className = "text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600";
+            } else if (Math.abs(diffPercent) < 5) {
+                diffEl.className = "text-3xl font-black text-amber-500";
+                percEl.className = "text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-600";
+            } else {
+                diffEl.className = "text-3xl font-black text-rose-600";
+                percEl.className = "text-xs font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-600";
+            }
 
             let dups = Object.keys(tagFreq).filter(t => tagFreq[t] > 1);
             document.getElementById('kpi-duplicates').innerText = dups.length;
@@ -392,31 +470,50 @@
         function renderCharts() {
             const labels = [], actData = [], iscData = [], diffData = [];
             const pieLabels = [], pieData = [];
+            
             summaryData.sort((a,b) => a.feature.localeCompare(b.feature)).forEach(row => {
                 labels.push(row.feature);
                 actData.push(row.actual);
                 iscData.push(row.iscala);
-                let diff = ((row.actual - row.iscala) / (row.iscala || 1) * 100).toFixed(1);
-                diffData.push(diff);
+                let diff = row.iscala !== 0 ? ((row.actual - row.iscala) / row.iscala * 100).toFixed(1) : 0;
+                diffData.push(parseFloat(diff));
                 if (row.actual !== row.iscala) {
                     pieLabels.push(row.feature);
                     pieData.push(Math.abs(row.actual - row.iscala));
                 }
             });
+
             if (chartBar) chartBar.destroy();
             chartBar = new ApexCharts(document.querySelector("#chart-comparison"), {
-                series: [{ name: 'Thực Tế', type: 'column', data: actData }, { name: 'iScala', type: 'column', data: iscData }, { name: 'Lệch %', type: 'line', data: diffData }],
-                chart: { height: 320, type: 'line' },
-                colors: ['#4f46e5', '#94a3b8', '#f43f5e'],
-                xaxis: { categories: labels },
-                yaxis: [{ title: { text: 'PCS' } }, { show: false }, { opposite: true }]
+                series: [
+                    { name: 'Thực Tế (Actual)', type: 'column', data: actData },
+                    { name: 'Hệ Thống (iScala)', type: 'column', data: iscData },
+                    { name: 'Chênh Lệch %', type: 'line', data: diffData }
+                ],
+                chart: { 
+                    height: 380, 
+                    type: 'line', 
+                    toolbar: { show: true },
+                    zoom: { enabled: true }
+                },
+                stroke: { width: [0, 0, 3], curve: 'smooth' },
+                plotOptions: { bar: { columnWidth: '60%', borderRadius: 4 } },
+                colors: ['#4f46e5', '#cbd5e1', '#f43f5e'],
+                xaxis: { categories: labels, labels: { style: { fontSize: '10px' } } },
+                yaxis: [
+                    { title: { text: 'Số lượng PCS' }, labels: { formatter: (val) => val.toFixed(0) } },
+                    { opposite: true, title: { text: 'Tỉ lệ lệch %' }, labels: { formatter: (val) => val + '%' } }
+                ],
+                legend: { position: 'top', horizontalAlign: 'right' },
+                tooltip: { shared: true, intersect: false }
             });
             chartBar.render();
+
             if (pieData.length > 0) {
                 document.getElementById('pie-empty-msg').classList.add('hidden');
                 if (chartPie) chartPie.destroy();
                 chartPie = new ApexCharts(document.querySelector("#chart-pie-risk"), {
-                    series: pieData, labels: pieLabels, chart: { type: 'donut', height: 320 },
+                    series: pieData, labels: pieLabels, chart: { type: 'donut', height: 380 },
                     colors: ['#f43f5e', '#fb923c', '#fbbf24', '#38bdf8', '#818cf8'],
                     plotOptions: { pie: { donut: { labels: { show: true, total: { show: true, label: 'TỔNG LỆCH' } } } } }
                 });
@@ -427,7 +524,7 @@
         }
 
         // ========================================================
-        // MODULES: IMPORT/EXPORT/EDIT (SỬA LỖI DEBUG DUPLICATE)
+        // MODULES: IMPORT/EXPORT/EDIT
         // ========================================================
         async function uploadData() {
             const fMaster = document.getElementById('file-master').files[0];
@@ -436,13 +533,10 @@
             statusDiv.innerHTML = 'Đang xử lý...';
 
             try {
-                // 1. XÓA TOÀN BỘ DỮ LIỆU CŨ
                 await supabaseClient.from('master_data').delete().neq('tag_id', '0');
-                
                 Papa.parse(fMaster, {
                     header: true, skipEmptyLines: true,
                     complete: async function(results) {
-                        // 2. LỌC TRÙNG TAG ID TRONG FILE CSV TRƯỚC KHI GỬI (Fix lỗi ON CONFLICT)
                         const uniqueDataMap = new Map();
                         results.data.forEach(row => {
                             const tag = row['BATCH']?.trim();
@@ -456,10 +550,7 @@
                                 });
                             }
                         });
-
                         const formatted = Array.from(uniqueDataMap.values());
-
-                        // 3. SỬ DỤNG INSERT THAY VÌ UPSERT
                         const { error } = await supabaseClient.from('master_data').insert(formatted);
                         if (error) statusDiv.innerHTML = `<span class="text-red-500">Lỗi: ${error.message}</span>`;
                         else {
@@ -468,9 +559,7 @@
                         }
                     }
                 });
-            } catch (e) {
-                statusDiv.innerHTML = `<span class="text-red-500">Lỗi hệ thống!</span>`;
-            }
+            } catch (e) { statusDiv.innerHTML = `<span class="text-red-500">Lỗi hệ thống!</span>`; }
         }
 
         async function uploadInboundCSV() {
@@ -486,7 +575,6 @@
                         tag_id: row['tagid']?.trim() || row['TAG ID']?.trim(),
                         bin: row['bin']?.trim() || row['BIN']?.trim()
                     })).filter(r => r.tag_id);
-
                     const { error } = await supabaseClient.from('inventory').upsert(formatted);
                     if (error) msg.innerHTML = `<span class="text-red-500">Lỗi: ${error.message}</span>`;
                     else {
@@ -498,70 +586,33 @@
         }
 
         function exportTableToExcel() {
-            // 1. Tạo mảng dữ liệu tùy chỉnh từ rawData để kiểm soát định dạng
-            const exportData = rawData.map(row => {
-                return {
-                    "Stock Code": String(row.colA),
-                    "Feature": String(row.colB),
-                    "Actual Qty": Number(row.colC) || 0, // Định dạng Number
-                    "Warehouse": String(row.colE),
-                    "Stock Update": row.colF, // Sẽ xử lý định dạng date bên dưới
-                    "Create Date": row.colG,  // Sẽ xử lý định dạng date bên dưới
-                    "Tag ID": String(row.colH), // Ép kiểu String để không bị hiện số mũ E+
-                    "Bin": String(row.colI)     // Ép kiểu String
-                };
-            });
-
-            // 2. Tạo worksheet từ mảng JSON
+            const exportData = rawData.map(row => ({
+                "Stock Code": String(row.colA),
+                "Feature": String(row.colB),
+                "Actual Qty": Number(row.colC) || 0,
+                "Warehouse": String(row.colE),
+                "Stock Update": row.colF,
+                "Create Date": row.colG,
+                "Tag ID": String(row.colH),
+                "Bin": String(row.colI)
+            }));
             const worksheet = XLSX.utils.json_to_sheet(exportData);
-
-            // 3. TỐI ƯU ĐỊNH DẠNG CHI TIẾT (Force Text/Date/Number)
             const range = XLSX.utils.decode_range(worksheet['!ref']);
-            
             for (let R = range.s.r + 1; R <= range.e.r; ++R) {
                 for (let C = range.s.c; C <= range.e.c; ++C) {
-                    const cell_address = { c: C, r: R };
-                    const cell = worksheet[XLSX.utils.encode_cell(cell_address)];
-
+                    const cell = worksheet[XLSX.utils.encode_cell({c:C, r:R})];
                     if (!cell) continue;
-
-                    // Cột C (Actual Qty) - Cột index 2: Định dạng số
-                    if (C === 2) {
-                        cell.t = 'n'; // 'n' = number
-                    } 
-                    // Cột E, F (Stock Update, Create Date) - Cột index 4, 5: Định dạng Date
-                    else if (C === 4 || C === 5) {
-                        cell.t = 's'; // Để là string cho chính xác ngày tháng anh đã format từ View
-                        // Nếu anh muốn Excel nhận diện là ngày thực sự, ta có thể chuyển đổi 
-                        // nhưng vì dữ liệu từ View là "DD/MM/YYYY HH:mm", để String là an toàn nhất để không bị nhảy ngày.
-                    }
-                    // Tất cả các cột còn lại (Stock Code, Feature, Warehouse, TagID, Bin)
+                    if (C === 2) cell.t = 'n';
+                    else if (C === 4 || C === 5) cell.t = 's';
                     else {
-                        cell.t = 's'; // 's' = string (Text)
-                        // Đặc biệt cho Tag ID và Bin: Gán thêm định dạng text cho Excel
-                        if (C === 6 || C === 7) {
-                            cell.z = '@'; // '@' là format Text trong Excel
-                        }
+                        cell.t = 's';
+                        if (C === 6 || C === 7) cell.z = '@';
                     }
                 }
             }
-
-            // 4. Tạo workbook và xuất file
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, worksheet, "Tồn Kho");
-            
-            // Tùy chỉnh độ rộng cột cho dễ nhìn
-            worksheet['!cols'] = [
-                { wch: 20 }, // Stock Code
-                { wch: 12 }, // Feature
-                { wch: 12 }, // Actual Qty
-                { wch: 15 }, // Warehouse
-                { wch: 20 }, // Stock Update
-                { wch: 20 }, // Create Date
-                { wch: 20 }, // Tag ID
-                { wch: 15 }, // Bin
-            ];
-
+            worksheet['!cols'] = [{wch:20},{wch:12},{wch:12},{wch:15},{wch:20},{wch:20},{wch:20},{wch:15}];
             XLSX.writeFile(wb, `Inventory_Report_${new Date().toLocaleDateString()}.xlsx`);
         }
 
@@ -570,14 +621,8 @@
             const newTag = document.getElementById('edit-tag').value;
             const newBin = document.getElementById('edit-bin').value;
             const msg = document.getElementById('edit-msg');
-
             msg.innerHTML = '<span class="text-blue-500">Đang lưu...</span>';
-
-            const { error } = await supabaseClient.from('inventory').update({ 
-                tag_id: newTag, 
-                bin: newBin 
-            }).eq('tag_id', oldTag);
-
+            const { error } = await supabaseClient.from('inventory').update({ tag_id: newTag, bin: newBin }).eq('tag_id', oldTag);
             if (error) msg.innerHTML = `<span class="text-red-500">Lỗi: ${error.message}</span>`;
             else {
                 msg.innerHTML = `<span class="text-emerald-500">Lưu thành công!</span>`;
@@ -588,7 +633,7 @@
         function openEditModal(tag, bin) {
             const tagInput = document.getElementById('edit-tag');
             tagInput.value = tag;
-            tagInput.setAttribute('data-original-tag', tag); // Lưu tag cũ để làm key update
+            tagInput.setAttribute('data-original-tag', tag);
             document.getElementById('edit-bin').value = bin;
             document.getElementById('edit-msg').innerText = '';
             openModal('modal-edit');
@@ -615,13 +660,20 @@
             }
         });
 
+        // THUẬT TOÁN TÌM KIẾM ĐA CỘT TỐI ƯU
         document.getElementById('filter-input').addEventListener('input', (e) => {
-            const kw = e.target.value.toLowerCase();
-            const filtered = rawData.filter(r => 
-                String(r.colA).toLowerCase().includes(kw) || 
-                String(r.colH).toLowerCase().includes(kw) || 
-                String(r.colB).toLowerCase().includes(kw)
-            );
+            const kw = e.target.value.toLowerCase().trim();
+            if (!kw) { renderTable(rawData); return; }
+
+            const filtered = rawData.filter(r => {
+                return (
+                    String(r.colB).toLowerCase().includes(kw) || // Feature
+                    String(r.colI).toLowerCase().includes(kw) || // Bin
+                    String(r.colE).toLowerCase().includes(kw) || // Warehouse
+                    String(r.colH).toLowerCase().includes(kw) || // Tag ID
+                    String(r.colA).toLowerCase().includes(kw)    // Stock Code
+                );
+            });
             renderTable(filtered);
         });
 
