@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WHMFG PRO | By Vinh 4.6 (Auto Mapping & Quick Edit)</title>
+    <title>WHMFG PRO | By Vinh 4.7 (Fixed Syntax Error)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -41,8 +41,7 @@
 
     <div id="loading">
         <div class="spinner"></div>
-        <p class="font-bold text-indigo-600 animate-pulse">ĐANG TẢI DỮ LIỆU TỪ SUPABASE...</p>
-        <p class="text-xs text-slate-400 mt-2">(Nếu tải quá lâu, vui lòng F12 kiểm tra API Key)</p>
+        <p class="font-bold text-indigo-600 animate-pulse">ĐANG ĐỒNG BỘ SUPABASE...</p>
     </div>
 
     <!-- MODAL NHẬP KHO -->
@@ -86,7 +85,7 @@
         </div>
     </div>
 
-    <!-- MODAL UPLOAD DỮ LIỆU NGUỒN (ĐÃ FIX AUTO MAPPING) -->
+    <!-- MODAL UPLOAD DATA -->
     <div id="modal-upload" class="modal">
         <div class="bg-white p-6 rounded-2xl w-[400px] shadow-2xl">
             <div class="flex justify-between items-center mb-4">
@@ -97,12 +96,12 @@
                 <div class="p-4 border-2 border-dashed border-indigo-200 rounded-xl bg-indigo-50">
                     <label class="block text-xs font-bold text-indigo-800 mb-2">1. File Master Data (.csv)</label>
                     <input type="file" id="file-master" accept=".csv" class="text-xs w-full">
-                    <p class="text-[10px] text-slate-500 mt-1">Cột tự nhận: Stock Code, Warehouse, CREATEDATE, BATCH, Qty</p>
+                    <p class="text-[10px] text-slate-500 mt-1">Auto Map: Stock Code, Warehouse, CREATEDATE, BATCH, Qty</p>
                 </div>
                 <div class="p-4 border-2 border-dashed border-blue-200 rounded-xl bg-blue-50">
                     <label class="block text-xs font-bold text-blue-800 mb-2">2. File iScala (.csv)</label>
                     <input type="file" id="file-iscala" accept=".csv" class="text-xs w-full">
-                    <p class="text-[10px] text-slate-500 mt-1">Cột tự nhận: feature, qty_iscala</p>
+                    <p class="text-[10px] text-slate-500 mt-1">Auto Map: feature, qty_iscala</p>
                 </div>
                 <div id="upload-status" class="text-xs font-bold text-center h-4 text-blue-600"></div>
                 <button onclick="uploadData()" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-xl hover:bg-indigo-700 shadow-lg active:scale-95 transition-transform">Tải Lên Hệ Thống</button>
@@ -110,7 +109,7 @@
         </div>
     </div>
 
-    <!-- MODAL SỬA NHANH (QUICK EDIT) -->
+    <!-- MODAL SỬA NHANH -->
     <div id="modal-edit" class="modal">
         <div class="bg-white p-6 rounded-2xl w-96 shadow-2xl">
             <div class="flex justify-between items-center mb-4">
@@ -119,7 +118,7 @@
             </div>
             <div class="space-y-4">
                 <div>
-                    <label class="text-xs font-bold text-slate-500">Mã Tag ID (Không thể sửa)</label>
+                    <label class="text-xs font-bold text-slate-500">Mã Tag ID</label>
                     <input type="text" id="edit-tag" class="w-full mt-1 p-2 border rounded-xl bg-slate-100 outline-none font-bold text-slate-500" disabled>
                 </div>
                 <div>
@@ -272,30 +271,31 @@
 
     <script>
         // ========================================================
-        // 1. CẤU HÌNH SUPABASE (ANH ĐIỀN THÔNG TIN CỦA ANH VÀO ĐÂY)
+        // 1. CẤU HÌNH SUPABASE (VUI LÒNG ĐIỀN URL VÀ KEY CỦA ANH)
         // ========================================================
-        const SUPABASE_URL = 'https://dhlpkycpkndfdgnbdcwn.supabase.co/rest/v1/'; // Thay URL của anh
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRobHBreWNwa25kZmRnbmJkY3duIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwODM2NDgsImV4cCI6MjA5NTY1OTY0OH0.aVbFpwZj6_zYlTqHYds27f9Q7brZn8Ti-0VUOFRuslE'; // Thay Key của anh
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_URL = 'https://dhlpkycpkndfdgnbdcwn.supabase.co/rest/v1/'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRobHBreWNwa25kZmRnbmJkY3duIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwODM2NDgsImV4cCI6MjA5NTY1OTY0OH0.aVbFpwZj6_zYlTqHYds27f9Q7brZn8Ti-0VUOFRuslE'; 
+        
+        // FIX LỖI: Đổi tên biến từ 'supabase' thành 'supabaseClient' để tránh trùng với thư viện
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let rawData = [];
         let summaryData = [];
         let chartBar, chartPie;
 
-        // Tự động tải lại khi Database có người thao tác
-        supabase.channel('custom-all-channel')
+        // Real-time sync
+        supabaseClient.channel('custom-all-channel')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, payload => { fetchData(); })
             .subscribe();
 
         window.onload = function() { fetchData(); };
 
-        // Lấy dữ liệu
         async function fetchData() {
             document.getElementById('loading').style.display = 'flex';
             try {
                 const [detailRes, summaryRes] = await Promise.all([
-                    supabase.from('vw_kho_thanh_pham').select('*'),
-                    supabase.from('vw_summary_analysis').select('*')
+                    supabaseClient.from('vw_kho_thanh_pham').select('*'),
+                    supabaseClient.from('vw_summary_analysis').select('*')
                 ]);
                 
                 if (detailRes.error) throw detailRes.error;
@@ -315,7 +315,7 @@
         }
 
         // ========================================================
-        // TÍNH NĂNG MỚI: SỬA NHANH (QUICK EDIT) TẠI GIAO DIỆN
+        // SỬA NHANH (QUICK EDIT)
         // ========================================================
         function openEditModal(tagId, currentBin, currentQty, currentWh) {
             document.getElementById('edit-tag').value = tagId;
@@ -335,23 +335,17 @@
 
             msg.innerHTML = '<span class="text-blue-500">Đang lưu thay đổi...</span>';
             
-            // 1. Cập nhật Bin ở bảng inventory
-            const res1 = await supabase.from('inventory').update({ bin: bin }).eq('tag_id', tag);
-            // 2. Cập nhật Qty, Wh ở bảng master_data
-            const res2 = await supabase.from('master_data').update({ qty: Number(qty), wh_location: wh }).eq('tag_id', tag);
+            const res1 = await supabaseClient.from('inventory').update({ bin: bin }).eq('tag_id', tag);
+            const res2 = await supabaseClient.from('master_data').update({ qty: Number(qty), wh_location: wh }).eq('tag_id', tag);
 
             if (res1.error || res2.error) {
                 msg.innerHTML = `<span class="text-red-500">Lỗi lưu dữ liệu!</span>`;
             } else {
-                msg.innerHTML = `<span class="text-emerald-500">Lưu thành công! Đang tải lại...</span>`;
-                setTimeout(() => {
-                    closeModal('modal-edit');
-                    fetchData(); // Tải lại bảng
-                }, 800);
+                msg.innerHTML = `<span class="text-emerald-500">Lưu thành công!</span>`;
+                setTimeout(() => { closeModal('modal-edit'); fetchData(); }, 800);
             }
         }
 
-        // Đóng mở Modals
         function openModal(id) { 
             document.getElementById(id).classList.add('active'); 
             if(id === 'modal-inbound') setTimeout(() => document.getElementById('inbound-bin').focus(), 100);
@@ -360,7 +354,7 @@
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
         // ========================================================
-        // MODULE NHẬP KHO VÀ XUẤT KHO
+        // NHẬP / XUẤT KHO
         // ========================================================
         document.getElementById('inbound-bin').addEventListener('keydown', function(e) { if(e.key === 'Enter') document.getElementById('inbound-tag').focus(); });
         document.getElementById('inbound-tag').addEventListener('keydown', async function(e) {
@@ -370,11 +364,10 @@
                 const msg = document.getElementById('inbound-msg');
                 if(!bin || !tag) return;
                 msg.innerHTML = '<span class="text-blue-500">Đang lưu...</span>';
-                
-                const { error } = await supabase.from('inventory').insert([{ tag_id: tag, bin: bin }]);
+                const { error } = await supabaseClient.from('inventory').insert([{ tag_id: tag, bin: bin }]);
                 if (error) msg.innerHTML = `<span class="text-red-500">Lỗi: ${error.message}</span>`;
                 else {
-                    msg.innerHTML = `<span class="text-emerald-500">Thành công! Đã nhập: ${tag}</span>`;
+                    msg.innerHTML = `<span class="text-emerald-500">Thành công!</span>`;
                     this.value = ''; 
                     if(!document.getElementById('lock-bin').checked) {
                         document.getElementById('inbound-bin').value = '';
@@ -390,44 +383,42 @@
                 const msg = document.getElementById('outbound-msg');
                 if(!tag) return;
                 msg.innerHTML = '<span class="text-blue-500">Đang xuất...</span>';
-                const { error } = await supabase.from('inventory').delete().eq('tag_id', tag);
+                const { error } = await supabaseClient.from('inventory').delete().eq('tag_id', tag);
                 if (error) msg.innerHTML = `<span class="text-red-500">Lỗi: ${error.message}</span>`;
                 else {
-                    msg.innerHTML = `<span class="text-rose-500">Thành công! Đã xuất: ${tag}</span>`;
+                    msg.innerHTML = `<span class="text-rose-500">Thành công!</span>`;
                     this.value = ''; this.focus();
                 }
             }
         });
 
         // ========================================================
-        // TÍNH NĂNG MỚI: TỰ ĐỘNG MAPPING TÊN CỘT TỪ FILE CSV CỦA ANH
+        // AUTO MAPPING CSV (FIX LỖI LOAD HOÀI)
         // ========================================================
         async function uploadData() {
             const fMaster = document.getElementById('file-master').files[0];
             const fIscala = document.getElementById('file-iscala').files[0];
             const statusDiv = document.getElementById('upload-status');
-            
             if (!fMaster && !fIscala) { alert('Vui lòng chọn file CSV!'); return; }
             statusDiv.innerHTML = 'Đang xử lý file CSV...';
 
             if(fMaster) {
                 Papa.parse(fMaster, {
                     header: true, skipEmptyLines: true,
-                    transformHeader: function(header) { return header.trim(); }, // Xóa khoảng trắng ẩn ở tiêu đề
+                    transformHeader: function(header) { return header.trim(); },
                     complete: async function(results) {
-                        // Ánh xạ tự động từ File của anh sang DB
                         const formattedData = results.data.map(row => ({
                             tag_id: row['BATCH'] ? row['BATCH'].trim() : null,
                             lp_no: row['Stock Code'] ? row['Stock Code'].trim() : null,
                             qty: row['Qty'] ? parseFloat(row['Qty']) : 0,
                             wh_location: row['Warehouse'] ? row['Warehouse'].trim() : null,
                             create_date: row['CREATEDATE'] ? row['CREATEDATE'].trim() : null
-                        })).filter(r => r.tag_id != null); // Bỏ qua dòng trống
+                        })).filter(r => r.tag_id != null);
 
-                        const { error } = await supabase.from('master_data').upsert(formattedData);
+                        const { error } = await supabaseClient.from('master_data').upsert(formattedData);
                         if(error) statusDiv.innerHTML = `<span class="text-red-500">Lỗi Master: ${error.message}</span>`;
                         else {
-                            statusDiv.innerHTML = '<span class="text-emerald-500">Đã cập nhật Master Data thành công!</span>';
+                            statusDiv.innerHTML = '<span class="text-emerald-500">Đã cập nhật Master thành công!</span>';
                             fetchData();
                         }
                     }
@@ -438,7 +429,7 @@
                     header: true, skipEmptyLines: true,
                     transformHeader: function(header) { return header.trim(); },
                     complete: async function(results) {
-                        const { error } = await supabase.from('iscala_data').upsert(results.data);
+                        const { error } = await supabaseClient.from('iscala_data').upsert(results.data);
                         if(error) statusDiv.innerHTML = `<span class="text-red-500">Lỗi iScala: ${error.message}</span>`;
                         else {
                             statusDiv.innerHTML = '<span class="text-emerald-500">Đã cập nhật iScala thành công!</span>';
@@ -450,7 +441,7 @@
         }
 
         // ========================================================
-        // RENDER BẢNG (KÈM NÚT EDIT) VÀ CHART TỪ BẢN CŨ
+        // RENDER & ANALYTICS (GIỮ NGUYÊN LOGIC CỦA ANH)
         // ========================================================
         function groupDataByColB(data) {
             let groups = {};
@@ -471,51 +462,36 @@
             Object.keys(groupedData).sort().forEach(groupKey => {
                 const group = groupedData[groupKey];
                 let kienCount = group.maxActual > 0 ? (group.sumActual / 2) / group.maxActual : 0;
-                
                 let groupRow = document.createElement('tr');
                 groupRow.className = 'group-header';
                 groupRow.innerHTML = `<td class="px-8 py-4 font-extrabold text-indigo-700">MÃ: ${groupKey}</td><td class="px-6 py-4 text-xs font-bold text-slate-500">${parseFloat(kienCount.toFixed(2))} Kiện</td><td class="px-6 py-4 font-black text-slate-800 text-right">${group.sumActual.toLocaleString()}</td><td class="px-6 py-4 font-black text-slate-800 text-right">${group.sumIscala.toLocaleString()}</td><td colspan="6"></td>`;
                 tbody.appendChild(groupRow);
-                
                 group.rows.forEach(row => {
                     let whLocDisplay = String(row.colE).toLowerCase().includes("no data") ? `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-rose-600 text-white animate-pulse">No Data</span>` : `<span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-white border">${row.colE}</span>`;
                     let detailRow = document.createElement('tr');
                     detailRow.className = 'hover:bg-slate-50 border-b border-slate-100 transition-colors';
-                    // Thêm nút Edit ở cuối
                     detailRow.innerHTML = `
-                        <td class="px-8 py-4 text-xs">${row.colA}</td>
-                        <td class="px-6 py-4 text-[11px]">${row.colB}</td>
-                        <td class="px-6 py-4 text-right font-bold">${Number(row.colC).toLocaleString()}</td>
-                        <td class="px-6 py-4 text-right">${row.colD}</td>
-                        <td class="px-6 py-4 text-center">${whLocDisplay}</td>
-                        <td class="px-6 py-4 text-xs">${row.colF}</td>
-                        <td class="px-6 py-4 text-[10px]">${row.colG}</td>
-                        <td class="px-6 py-4 text-xs font-mono text-indigo-400 font-bold">${row.colH}</td>
-                        <td class="px-6 py-4 text-xs">${row.colI || '-'}</td>
+                        <td class="px-8 py-4 text-xs">${row.colA}</td><td class="px-6 py-4 text-[11px]">${row.colB}</td><td class="px-6 py-4 text-right font-bold">${Number(row.colC).toLocaleString()}</td><td class="px-6 py-4 text-right">${row.colD}</td><td class="px-6 py-4 text-center">${whLocDisplay}</td><td class="px-6 py-4 text-xs">${row.colF}</td><td class="px-6 py-4 text-[10px]">${row.colG}</td><td class="px-6 py-4 text-xs font-mono text-indigo-400 font-bold">${row.colH}</td><td class="px-6 py-4 text-xs">${row.colI || '-'}</td>
                         <td class="px-6 py-4 text-center">
                             <button onclick="openEditModal('${row.colH}', '${row.colI}', '${row.colC}', '${row.colE}')" class="text-amber-500 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 p-1.5 rounded-lg transition-colors border border-amber-200">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             </button>
-                        </td>
-                    `;
+                        </td>`;
                     tbody.appendChild(detailRow);
                 });
             });
         }
 
-        // GIỮ NGUYÊN HÀM RENDER CHART VÀ KPI CŨ CỦA ANH
         function updateKPIs(summary) {
             let totalActual = 0, totalIscala = 0;
             summary.forEach(row => { totalActual += Number(row.actual); totalIscala += Number(row.iscala); });
             document.getElementById('kpi-total-actual').innerText = totalActual.toLocaleString();
             let diff = totalActual - totalIscala;
             let diffPercent = totalIscala !== 0 ? ((diff / totalIscala) * 100).toFixed(1) : (totalActual > 0 ? 100 : 0);
-            
             const diffEl = document.getElementById('kpi-diff');
             const diffPercentEl = document.getElementById('kpi-diff-percent');
             diffEl.innerText = (diff > 0 ? "+" : "") + diff.toLocaleString();
             diffPercentEl.innerText = `${diffPercent}% so với hệ thống`;
-            
             if (diff === 0) { diffEl.className = "text-3xl font-black text-emerald-500"; diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-emerald-50 text-emerald-600"; } 
             else if (Math.abs(diffPercent) < 5) { diffEl.className = "text-3xl font-black text-amber-500"; diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-amber-50 text-amber-600"; } 
             else { diffEl.className = "text-3xl font-black text-rose-600"; diffPercentEl.className = "text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full inline-block bg-rose-600 text-white"; }
@@ -538,18 +514,15 @@
             const grouped = groupDataByColB(data);
             const noDataTags = data.filter(r => String(r.colE).toLowerCase().includes("no data") || String(r.colB).toLowerCase().includes("no data")).map(r => r.colH);
             document.getElementById('analysis-no-data').innerHTML = noDataTags.length > 0 ? noDataTags.map(t => `<div class="badge-warning inline-flex items-center gap-2 px-3 py-1.5 bg-rose-50 border border-rose-200 rounded-lg"><span class="w-2 h-2 rounded-full bg-rose-600 dot-pulse-red"></span><span class="text-[11px] font-black text-rose-700">${t}</span></div>`).join('') : '<span class="text-xs text-slate-400 italic">An toàn</span>';
-            
             const lowStock = Object.keys(grouped).map(key => {
                 const g = grouped[key];
                 const kien = g.maxActual > 0 ? Math.ceil((g.sumActual / 2) / g.maxActual) : 0;
                 return { key, kien };
             }).filter(item => item.kien > 0 && item.kien < 2 && item.key !== 'No data');
             document.getElementById('analysis-low-stock').innerHTML = lowStock.length > 0 ? lowStock.map(item => `<div class="badge-warning inline-flex items-center gap-2 px-3 py-1.5 bg-rose-50 border border-rose-200 rounded-lg"><span class="w-2 h-2 rounded-full bg-rose-600 dot-pulse-red"></span><span class="text-[11px] font-black text-rose-800">${item.key}: <span class="text-rose-600">${item.kien} Kiện</span></span></div>`).join('') : '<span class="text-xs text-slate-400 italic">Đã đủ số lượng</span>';
-
             let tagFreq = {}; data.forEach(r => { if(r.colH) tagFreq[r.colH] = (tagFreq[r.colH] || 0) + 1; });
             const dups = Object.keys(tagFreq).filter(t => tagFreq[t] > 1);
             document.getElementById('analysis-duplicates').innerHTML = dups.length > 0 ? dups.map(t => `<div class="badge-warning inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg"><span class="w-2 h-2 rounded-full bg-amber-500 dot-pulse-amber"></span><span class="text-[11px] font-black text-amber-800">${t} (x${tagFreq[t]})</span></div>`).join('') : '<span class="text-xs text-slate-400 italic">Không có mã trùng</span>';
-
             const midStock = Object.keys(grouped).map(key => {
                 const g = grouped[key];
                 const kien = g.maxActual > 0 ? Math.ceil((g.sumActual / 2) / g.maxActual) : 0;
@@ -561,17 +534,14 @@
         function renderCharts(summary) {
             const labels = [], dataActual = [], dataIscala = [], dataTrend = [];
             const pieLabels = [], pieData = [];
-            
             summary.sort((a,b) => a.feature.localeCompare(b.feature)).forEach(row => {
                 labels.push(row.feature); dataActual.push(row.actual); dataIscala.push(row.iscala);
                 let trend = row.iscala > 0 ? ((row.actual - row.iscala) / row.iscala) * 100 : (row.actual > 0 ? 100 : 0);
                 dataTrend.push(trend.toFixed(1));
                 if (row.actual !== row.iscala) { pieLabels.push(row.feature); pieData.push(Math.abs(row.actual - row.iscala)); }
             });
-
             const barOptions = { series:[{ name: 'Thực Tế', type: 'column', data: dataActual }, { name: 'Hệ Thống', type: 'column', data: dataIscala }, { name: 'Chênh Lệch %', type: 'line', data: dataTrend }], chart: { height: 320, type: 'line' }, colors:['#4f46e5', '#94a3b8', '#f43f5e'], xaxis: { categories: labels }, yaxis:[{ title: { text: 'PCS' } }, { show: false }, { opposite: true }] };
             if (chartBar) chartBar.destroy(); chartBar = new ApexCharts(document.querySelector("#chart-comparison"), barOptions); chartBar.render();
-
             if (pieData.length > 0) {
                 document.getElementById('pie-empty-msg').classList.add('hidden');
                 const pieOptions = { series: pieData, labels: pieLabels, chart: { type: 'donut', height: 320 }, colors:['#f43f5e', '#fb923c', '#fbbf24', '#38bdf8', '#818cf8'], plotOptions: { pie: { donut: { labels: { show: true, total: { show: true, label: 'LỆCH TỔNG' } } } } } };
