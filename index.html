@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WHMFG PRO | Inventory Analytics v3.0</title>
+    <title>WHMFG PRO | Inventory Analytics v3.1</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -15,7 +15,10 @@
     <style>
         :root { 
             --primary: #4f46e5; 
-            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 50%, #f1f5f9 100%);
+            --mint-light: #f0fdfa;
+            --mint-medium: #ccfbf1;
+            --mint-dark: #99f6e4;
+            --bg-gradient: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 50%, #f0fdfa 100%);
         }
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
@@ -23,22 +26,25 @@
             background-attachment: fixed;
             color: #1e293b; 
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
         }
         .glass-card { 
-            background: rgba(255, 255, 255, 0.7); 
-            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.6); 
+            backdrop-filter: blur(16px);
             border-radius: 24px; 
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05); 
-            border: 1px solid rgba(255, 255, 255, 0.5); 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            box-shadow: 0 10px 40px -12px rgba(0, 0, 0, 0.08); 
+            border: 1px solid rgba(255, 255, 255, 0.7); 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
         }
         .glass-card:hover { 
-            transform: translateY(-5px); 
-            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1); 
+            transform: translateY(-6px); 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12); 
             background: rgba(255, 255, 255, 0.9);
         }
         .group-header { 
-            background: linear-gradient(90deg, #eef2ff 0%, #ffffff 100%) !important; 
+            background: linear-gradient(90deg, #f0fdfa 0%, #ffffff 100%) !important; 
             border-left: 6px solid var(--primary); 
             font-weight: 800; 
         }
@@ -53,27 +59,40 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(6px); z-index: 10000; justify-content: center; align-items: center; }
-        .modal.active { display: flex; animation: fadeIn 0.3s ease; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 10000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes modalScale { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
         .sticky-header {
             position: sticky; top: 0; z-index: 50;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(15px);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
         }
 
-        /* Custom Animations */
         .animate-fade-up {
-            animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: fadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
             opacity: 0;
         }
         @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Nâng cấp Button */
+        .btn-premium {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -6px rgba(0,0,0,0.2);
+            filter: brightness(1.1);
+        }
+        .btn-premium:active { transform: scale(0.95); }
     </style>
 </head>
 <body class="p-6 pb-20 max-w-[1600px] mx-auto">
@@ -84,29 +103,29 @@
     </div>
 
     <!-- STICKY HEADER -->
-    <header class="sticky-header p-6 mb-10 rounded-3xl flex justify-between items-end shadow-sm">
+    <header class="sticky-header p-6 mb-10 rounded-[32px] flex justify-between items-end shadow-sm">
         <div>
             <div class="flex items-center gap-2 mb-1">
                 <span class="w-2 h-2 bg-indigo-600 rounded-full animate-ping"></span>
-                <p class="text-xs font-bold text-indigo-600 tracking-widest uppercase">Inventory Data Analytics v3.0</p>
+                <p class="text-xs font-bold text-indigo-600 tracking-widest uppercase">Inventory Data Analytics v3.1</p>
             </div>
             <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">WHM System <span class="text-indigo-600">Pro</span></h1>
         </div>
         <div class="text-right">
             <div class="flex gap-3 justify-end items-center">
-                <button onclick="openModal('modal-upload')" class="btn-module bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md hover:bg-indigo-700">
+                <button onclick="openModal('modal-upload')" class="btn-premium bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                     CẬP NHẬT NGUỒN
                 </button>
-                <button onclick="openModal('modal-inbound')" class="btn-module bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md hover:bg-emerald-700">
+                <button onclick="openModal('modal-inbound')" class="btn-premium bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                     NHẬP KHO (IN)
                 </button>
-                <button onclick="openModal('modal-outbound')" class="btn-module bg-rose-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md hover:bg-rose-700">
+                <button onclick="openModal('modal-outbound')" class="btn-premium bg-rose-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     XUẤT KHO (OUT)
                 </button>
-                <button onclick="fetchData()" class="btn-module bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md hover:bg-slate-900">
+                <button onclick="fetchData()" class="btn-premium bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                     LÀM MỚI
                 </button>
@@ -115,7 +134,7 @@
         </div>
     </header>
 
-    <!-- KPI CARDS (REDESIGNED) -->
+    <!-- KPI CARDS -->
     <section class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-10">
         <div class="glass-card p-6 border-b-4 border-indigo-500 animate-fade-up" style="animation-delay: 0.1s">
             <p class="text-xs font-extrabold text-slate-400 uppercase mb-2">Tổng Tồn Thực Tế</p>
@@ -154,7 +173,7 @@
             <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-widest">Trung Tâm Cảnh Báo Rủi Ro</h3>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white/50 rounded-[24px] p-6 border border-rose-200 shadow-sm">
+            <div class="bg-white/40 rounded-[24px] p-6 border border-rose-200 shadow-sm">
                 <div class="flex items-center gap-2 mb-6 pb-3 border-b border-rose-100">
                     <span class="flex h-4 w-4 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span><span class="relative inline-flex rounded-full h-4 w-4 bg-rose-600"></span></span>
                     <h4 class="text-rose-700 font-black uppercase text-sm tracking-widest">Ưu Tiên Xử Lý (No Data & 1 Kiện)</h4>
@@ -170,7 +189,7 @@
                     </div>
                 </div>
             </div>
-            <div class="bg-white/50 rounded-[24px] p-6 border border-amber-200 shadow-sm">
+            <div class="bg-white/40 rounded-[24px] p-6 border border-amber-200 shadow-sm">
                 <div class="flex items-center gap-2 mb-6 pb-3 border-b border-amber-100">
                     <span class="w-4 h-4 bg-amber-500 rounded-full animate-pulse"></span>
                     <h4 class="text-amber-700 font-black uppercase text-sm tracking-widest">Theo Dõi Gần (3-5 Kiện & Trùng Tag)</h4>
@@ -208,7 +227,7 @@
         <div class="flex p-4 justify-between bg-white/50 border-b items-center">
             <h2 class="text-xl font-extrabold text-slate-800 tracking-tight uppercase">Bảng chi tiết tồn kho thành phẩm</h2>
             <div class="flex gap-2">
-                <button onclick="exportTableToExcel()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-emerald-700 shadow-lg transition-all">
+                <button onclick="exportTableToExcel()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-emerald-700 shadow-lg transition-all btn-premium">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                     XUẤT EXCEL
                 </button>
@@ -235,9 +254,9 @@
         </div>
     </div>
 
-    <!-- MODALS (GIỮ NGUYÊN CẤU TRÚC NHƯNG THÊM ANIMATION) -->
+    <!-- MODALS -->
     <div id="modal-inbound" class="modal">
-        <div class="bg-white p-6 rounded-2xl w-[450px] shadow-2xl">
+        <div class="bg-white p-6 rounded-3xl w-[450px] shadow-2xl">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-black text-lg text-emerald-600 uppercase">Nhập Kho (IN)</h3>
                 <button onclick="closeModal('modal-inbound')" class="text-slate-400 hover:text-red-500 font-bold">X</button>
@@ -261,7 +280,7 @@
     </div>
 
     <div id="modal-outbound" class="modal">
-        <div class="bg-white p-6 rounded-2xl w-96 shadow-2xl">
+        <div class="bg-white p-6 rounded-3xl w-96 shadow-2xl">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-black text-lg text-rose-600 uppercase">Xuất Kho (OUT)</h3>
                 <button onclick="closeModal('modal-outbound')" class="text-slate-400 hover:text-red-500 font-bold">X</button>
@@ -275,7 +294,7 @@
     </div>
 
     <div id="modal-upload" class="modal">
-        <div class="bg-white p-6 rounded-2xl w-[400px] shadow-2xl">
+        <div class="bg-white p-6 rounded-3xl w-[400px] shadow-2xl">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-black text-lg text-indigo-600 uppercase">Cập Nhật File Nguồn</h3>
                 <button onclick="closeModal('modal-upload')" class="text-slate-400 hover:text-red-500 font-bold">X</button>
@@ -293,7 +312,7 @@
     </div>
 
     <div id="modal-edit" class="modal">
-        <div class="bg-white p-6 rounded-2xl w-96 shadow-2xl">
+        <div class="bg-white p-6 rounded-3xl w-96 shadow-2xl">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-black text-lg text-amber-600 uppercase">Sửa Dữ Liệu Nhanh</h3>
                 <button onclick="closeModal('modal-edit')" class="text-slate-400 hover:text-red-500 font-bold">X</button>
@@ -423,7 +442,6 @@
             diffEl.innerText = (diff > 0 ? "+" : "") + diff.toLocaleString();
             percEl.innerText = `${diffPercent}%`;
 
-            // Màu sắc theo chênh lệch
             if (diff === 0) {
                 diffEl.className = "text-3xl font-black text-emerald-500";
                 percEl.className = "text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600";
@@ -473,8 +491,8 @@
             
             summaryData.sort((a,b) => a.feature.localeCompare(b.feature)).forEach(row => {
                 labels.push(row.feature);
-                actData.push(row.actual);
-                iscData.push(row.iscala);
+                actData.push(Number(row.actual) || 0);
+                iscData.push(Number(row.iscala) || 0);
                 let diff = row.iscala !== 0 ? ((row.actual - row.iscala) / row.iscala * 100).toFixed(1) : 0;
                 diffData.push(parseFloat(diff));
                 if (row.actual !== row.iscala) {
@@ -494,12 +512,13 @@
                     height: 380, 
                     type: 'line', 
                     toolbar: { show: true },
-                    zoom: { enabled: true }
+                    zoom: { enabled: true },
+                    animations: { enabled: true, easing: 'easeinout', speed: 800 }
                 },
                 stroke: { width: [0, 0, 3], curve: 'smooth' },
-                plotOptions: { bar: { columnWidth: '60%', borderRadius: 4 } },
+                plotOptions: { bar: { columnWidth: '60%', borderRadius: 6 } },
                 colors: ['#4f46e5', '#cbd5e1', '#f43f5e'],
-                xaxis: { categories: labels, labels: { style: { fontSize: '10px' } } },
+                xaxis: { categories: labels, labels: { style: { fontSize: '10px', fontWeight: 600 } } },
                 yaxis: [
                     { title: { text: 'Số lượng PCS' }, labels: { formatter: (val) => val.toFixed(0) } },
                     { opposite: true, title: { text: 'Tỉ lệ lệch %' }, labels: { formatter: (val) => val + '%' } }
@@ -523,9 +542,6 @@
             }
         }
 
-        // ========================================================
-        // MODULES: IMPORT/EXPORT/EDIT
-        // ========================================================
         async function uploadData() {
             const fMaster = document.getElementById('file-master').files[0];
             const statusDiv = document.getElementById('upload-status');
@@ -660,18 +676,17 @@
             }
         });
 
-        // THUẬT TOÁN TÌM KIẾM ĐA CỘT TỐI ƯU
         document.getElementById('filter-input').addEventListener('input', (e) => {
             const kw = e.target.value.toLowerCase().trim();
             if (!kw) { renderTable(rawData); return; }
 
             const filtered = rawData.filter(r => {
                 return (
-                    String(r.colB).toLowerCase().includes(kw) || // Feature
-                    String(r.colI).toLowerCase().includes(kw) || // Bin
-                    String(r.colE).toLowerCase().includes(kw) || // Warehouse
-                    String(r.colH).toLowerCase().includes(kw) || // Tag ID
-                    String(r.colA).toLowerCase().includes(kw)    // Stock Code
+                    String(r.colB).toLowerCase().includes(kw) || 
+                    String(r.colI).toLowerCase().includes(kw) || 
+                    String(r.colE).toLowerCase().includes(kw) || 
+                    String(r.colH).toLowerCase().includes(kw) || 
+                    String(r.colA).toLowerCase().includes(kw)    
                 );
             });
             renderTable(filtered);
