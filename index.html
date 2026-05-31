@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WHS FG PRO | By Vinh V6</title>
+    <title>WHS FG PRO | By Vinh V6.1</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -75,7 +75,7 @@
         .neon-text-indigo { text-shadow: 0 0 12px rgba(99, 102, 241, 0.8); }
         .neon-text-rose { text-shadow: 0 0 12px rgba(244, 63, 94, 0.8); }
 
-        /* Custom Scrollbar - Siêu mỏng, không gây nhiễu */
+        /* Custom Scrollbar - Siêu mỏng */
         .table-container::-webkit-scrollbar { width: 4px; height: 4px; }
         .table-container::-webkit-scrollbar-track { background: transparent; }
         .table-container::-webkit-scrollbar-thumb { 
@@ -83,9 +83,9 @@
             border-radius: 10px; 
         }
 
-        /* Tùy chỉnh Toolbar ApexCharts - Đặt gọn góc, mờ nền */
+        /* Tùy chỉnh Toolbar ApexCharts - Đặt gọn góc */
         .apexcharts-toolbar {
-            background: rgba(15, 23, 42, 0.5) !important;
+            background: rgba(15, 23, 42, 0.6) !important;
             backdrop-filter: blur(10px) !important;
             border: 1px solid rgba(255, 255, 255, 0.1) !important;
             border-radius: 12px !important;
@@ -548,21 +548,29 @@
                 stroke: { width: [0, 0, 4], curve: 'smooth' },
                 plotOptions: { 
                     bar: { 
-                        columnWidth: '70%', 
-                        borderRadius: 4,
-                        // Đảm bảo 2 cột nằm cạnh nhau
-                        dataLabels: { position: 'top' }
+                        columnWidth: '60%', 
+                        borderRadius: 4
                     } 
                 },
                 colors: ['#6366f1', '#f8fafc', '#ff003c'],
                 xaxis: { categories: labels, labels: { style: { fontSize: '10px', fontWeight: 600 } } },
                 yaxis: [
-                    { title: { text: 'Số lượng PCS' }, labels: { formatter: (val) => val.toFixed(0) } },
+                    // Trục 1: Dành cho Actual
+                    { 
+                        title: { text: 'Số lượng PCS' }, 
+                        labels: { formatter: (val) => val.toFixed(0) } 
+                    },
+                    // Trục 2: Dành cho iScala (Thiết lập giống hệt Trục 1 để cột nằm cạnh nhau)
+                    { 
+                        show: false, 
+                        title: { text: '' }, 
+                        labels: { formatter: (val) => val.toFixed(0) } 
+                    },
+                    // Trục 3: Dành cho % Chênh Lệch (Đảo ngược để Trend Line nằm trên cùng)
                     { 
                         opposite: true, 
                         title: { text: 'Tỉ lệ lệch %' }, 
                         labels: { formatter: (val) => val + '%' }, 
-                        // ĐIỂM MẤT CHỐT: Đảo ngược trục Y để Line nằm sát mép trên và đổ xuống khi lệch
                         min: 100,
                         max: -100,
                     }
@@ -738,7 +746,6 @@
                 }
 
                 if (existingData) {
-                    // SỬ DỤNG MODAL TÙY CHỈNH THAY CHO CONFIRM()
                     const confirmUpdate = await showCustomConfirm(`Tag ID ${tag} đã tồn tại tại vị trí ${existingData.bin}.\n\nBạn có muốn THAY ĐỔI vị trí sang ${bin} không?`);
                     
                     if (confirmUpdate) {
@@ -788,7 +795,7 @@
 </body>
     <footer class="fixed bottom-4 left-0 w-full text-center pointer-events-none">
     <p class="text-[10px] font-futuristic text-slate-500 uppercase tracking-[0.2em] opacity-50 hover:opacity-100 transition-opacity duration-500">
-        Engineered by Vinh © 2026 | Ultra-Premium Inventory Core v5.0
+        Engineered by Vinh © 2026 | Ultra-Premium Inventory Core.
     </p>
 </footer>
 </html>
