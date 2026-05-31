@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WHMFG PRO | AI Inventory Analytics v4.0</title>
+    <title>WHMFG PRO | Cyber-Inventory v5.0</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -14,94 +14,99 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --primary: #6366f1; 
-            --accent: #06b6d4; 
-            --bg-main: #f8fafc;
-            --cyber-gradient: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+            --cyber-yellow: #fcee0a; 
+            --cyber-blue: #00f0ff; 
+            --cyber-pink: #ff003c; 
+            --bg-dark: #020617; 
+            --card-dark: rgba(15, 23, 42, 0.8);
+            --border-dark: #1e293b;
         }
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: var(--bg-main); 
-            color: #0f172a; 
+            background-color: var(--bg-dark); 
+            background-image: 
+                radial-gradient(circle at 2px 2px, #1e293b 1px, transparent 0);
+            background-size: 40px 40px;
+            color: #f1f5f9; 
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
             text-rendering: optimizeLegibility;
             overflow-x: hidden;
         }
-        /* Tối ưu cho PDA: Giảm Blur, tăng Shadow nhẹ để mượt hơn */
+        /* Glassmorphism Dark Mode */
         .glass-card { 
-            background: #ffffff; 
-            border-radius: 20px; 
-            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); 
-            border: 1px solid #e2e8f0; 
-            transition: all 0.2s ease; 
+            background: var(--card-dark); 
+            border-radius: 16px; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.5); 
+            border: 1px solid var(--border-dark); 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            position: relative;
         }
         .glass-card:hover { 
-            transform: translateY(-3px); 
-            box-shadow: 0 12px 24px -8px rgba(79, 70, 229, 0.15); 
-            border-color: var(--primary);
+            transform: translateY(-4px); 
+            border-color: var(--cyber-blue);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
         }
         .group-header { 
-            background: #f1f5f9 !important; 
-            border-left: 4px solid var(--primary); 
+            background: rgba(30, 41, 59, 0.7) !important; 
+            border-left: 4px solid var(--cyber-yellow); 
+            color: var(--cyber-yellow) !important;
             font-weight: 800; 
         }
         #loading { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); 
+            background: var(--bg-dark); backdrop-filter: blur(10px); 
             display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; 
         }
         .spinner { 
-            width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top: 4px solid var(--primary); 
+            width: 40px; height: 40px; border: 4px solid #1e293b; border-top: 4px solid var(--cyber-blue); 
             border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px; 
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 10000; justify-content: center; align-items: center; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(2, 6, 23, 0.8); backdrop-filter: blur(8px); z-index: 10000; justify-content: center; align-items: center; }
         .modal.active { display: flex; animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
         .sticky-header {
             position: sticky; top: 0; z-index: 50;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 2px solid var(--cyber-blue);
             transition: all 0.3s ease;
         }
 
-        /* Animation mượt cho PDA */
         .animate-slide-up {
-            animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
             opacity: 0;
         }
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(15px); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .btn-ai {
+        .btn-cyber {
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
             font-weight: 700;
-            position: relative;
-            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 1px solid transparent;
         }
-        .btn-ai:hover {
-            filter: brightness(1.1);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        .btn-cyber:hover {
+            filter: brightness(1.2);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px currentColor;
         }
-        .btn-ai:active { transform: scale(0.96); }
+        .btn-cyber:active { transform: scale(0.95); }
 
-        /* Mobile Optimization */
         @media (max-width: 768px) {
             .header-container { flex-direction: column; align-items: flex-start; gap: 1rem; }
             .header-buttons { width: 100%; grid-template-columns: repeat(2, 1fr); }
             .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-            .table-text-xs { font-size: 10px !important; padding: 8px 4px !important; }
         }
     </style>
 </head>
@@ -109,38 +114,38 @@
 
     <div id="loading">
         <div class="spinner"></div>
-        <p class="font-bold text-indigo-600 animate-pulse">AI SYNCING...</p>
+        <p class="font-bold text-cyan-400 animate-pulse uppercase tracking-widest">Initializing System...</p>
     </div>
 
     <!-- STICKY HEADER -->
-    <header class="sticky-header p-4 md:p-6 mb-8 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-end shadow-sm">
-        <div class="mb-4 md:mb-0">
+    <header class="sticky-header p-4 md:p-6 mb-8 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-end shadow-lg">
+        <div>
             <div class="flex items-center gap-2 mb-1">
-                <span class="w-2 h-2 bg-indigo-600 rounded-full animate-ping"></span>
-                <p class="text-[10px] font-bold text-indigo-600 tracking-widest uppercase">Next-Gen Inventory AI</p>
+                <span class="w-2 h-2 bg-cyan-400 rounded-full animate-ping"></span>
+                <p class="text-[10px] font-bold text-cyan-400 tracking-widest uppercase">Cyber-Inventory Core v5.0</p>
             </div>
-            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">WHM <span class="text-indigo-600">System Pro</span></h1>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">WHM <span class="text-cyan-400">System Pro</span></h1>
         </div>
-        <div class="w-full md:w-auto">
-            <div class="grid grid-cols-2 sm:flex gap-2 justify-end items-center">
-                <button onclick="openModal('modal-upload')" class="btn-ai bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm">
+        <div class="w-full md:w-auto mt-4 md:mt-0">
+            <div class="grid grid-cols-2 sm:flex gap-3 justify-end items-center">
+                <button onclick="openModal('modal-upload')" class="btn-cyber bg-indigo-600 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                     NGUỒN
                 </button>
-                <button onclick="openModal('modal-inbound')" class="btn-ai bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                <button onclick="openModal('modal-inbound')" class="btn-cyber bg-emerald-600 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0, 0 24, 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                     NHẬP (IN)
                 </button>
-                <button onclick="openModal('modal-outbound')" class="btn-ai bg-rose-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm">
+                <button onclick="openModal('modal-outbound')" class="btn-cyber bg-rose-600 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     XUẤT (OUT)
                 </button>
-                <button onclick="fetchData()" class="btn-ai bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm">
+                <button onclick="fetchData()" class="btn-cyber bg-slate-800 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm border border-slate-600">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                     REFRESH
                 </button>
             </div>
-            <p class="text-right text-[10px] font-medium text-slate-400 mt-2">Update: <span id="last-update" class="text-slate-700 font-bold">--:--</span></p>
+            <p class="text-right text-[10px] font-medium text-slate-500 mt-2">System Sync: <span id="last-update" class="text-cyan-400 font-bold">--:--</span></p>
         </div>
     </header>
 
@@ -148,8 +153,8 @@
     <section class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
         <div class="glass-card p-4 md:p-6 border-b-4 border-indigo-500 animate-slide-up" style="animation-delay: 0.1s">
             <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">Tổng Tồn Thực</p>
-            <h3 class="text-2xl md:text-3xl font-black text-slate-800" id="kpi-total-actual">0</h3>
-            <p class="text-[9px] text-slate-400 mt-1 uppercase font-bold">PCS (Actual)</p>
+            <h3 class="text-2xl md:text-3xl font-black text-white" id="kpi-total-actual">0</h3>
+            <p class="text-[9px] text-slate-500 mt-1 uppercase font-bold">PCS (Actual)</p>
         </div>
         <div class="glass-card p-4 md:p-6 border-b-4 border-blue-500 animate-slide-up" style="animation-delay: 0.2s">
             <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">Lệch Hệ Thống</p>
@@ -157,36 +162,36 @@
                 <h3 class="text-2xl md:text-3xl font-black" id="kpi-diff">0</h3>
                 <span id="kpi-diff-percent" class="text-[10px] font-bold px-2 py-0.5 rounded-full">0%</span>
             </div>
-            <p class="text-[9px] text-slate-400 mt-1 uppercase font-bold">vs iScala</p>
+            <p class="text-[9px] text-slate-500 mt-1 uppercase font-bold">vs iScala</p>
         </div>
         <div class="glass-card p-4 md:p-6 border-b-4 border-rose-500 animate-slide-up" style="animation-delay: 0.3s">
             <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">Tag No Data</p>
-            <h3 class="text-2xl md:text-3xl font-black text-rose-600" id="kpi-nodata">0</h3>
+            <h3 class="text-2xl md:text-3xl font-black text-rose-500" id="kpi-nodata">0</h3>
             <p class="text-[9px] text-rose-400 mt-1 uppercase font-bold">Data Error</p>
         </div>
         <div class="glass-card p-4 md:p-6 border-b-4 border-amber-500 animate-slide-up" style="animation-delay: 0.4s">
             <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">Cần Chuyển Kho</p>
-            <h3 class="text-2xl md:text-3xl font-black text-amber-600" id="kpi-move">0</h3>
-            <p class="text-[9px] text-amber-500 mt-1 font-bold">(WH 62, 01)</p>
+            <h3 class="text-2xl md:text-3xl font-black text-amber-500" id="kpi-move">0</h3>
+            <p class="text-[9px] text-amber-400 mt-1 font-bold">(WH 62, 01)</p>
         </div>
         <div class="glass-card p-4 md:p-6 border-b-4 border-red-600 animate-slide-up" style="animation-delay: 0.5s">
             <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">Trùng Tag</p>
-            <h3 class="text-2xl md:text-3xl font-black text-red-600" id="kpi-duplicates">0</h3>
+            <h3 class="text-2xl md:text-3xl font-black text-red-500" id="kpi-duplicates">0</h3>
             <p class="text-[9px] text-red-400 mt-1 uppercase font-bold">Verify required</p>
         </div>
     </section>
 
     <!-- ANALYSIS PANEL -->
-    <section class="glass-card p-6 mb-10 border-t-4 border-slate-800 animate-slide-up" style="animation-delay: 0.6s">
+    <section class="glass-card p-6 mb-10 border-t-4 border-slate-700 animate-slide-up" style="animation-delay: 0.6s">
         <div class="flex items-center gap-2 mb-6">
-            <div class="w-2 h-6 bg-slate-800 rounded-full"></div>
-            <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-widest">Trung Tâm Cảnh Báo Rủi Ro</h3>
+            <div class="w-2 h-6 bg-cyan-500 rounded-full shadow-[0_0_10px_#06b6d4]"></div>
+            <h3 class="text-sm font-extrabold text-white uppercase tracking-widest">Trung Tâm Cảnh Báo Rủi Ro</h3>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white/60 rounded-2xl p-6 border border-rose-100 shadow-sm">
-                <div class="flex items-center gap-2 mb-6 pb-3 border-b border-rose-100">
-                    <span class="flex h-3 w-3 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-rose-600"></span></span>
-                    <h4 class="text-rose-700 font-black uppercase text-xs tracking-widest">Ưu Tiên Xử Lý (No Data & 1 Kiện)</h4>
+            <div class="bg-slate-900/50 rounded-2xl p-6 border border-rose-900/30 shadow-inner">
+                <div class="flex items-center gap-2 mb-6 pb-3 border-b border-rose-900/30">
+                    <span class="flex h-3 w-3 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-rose-600 shadow-[0_0_8px_#ff003c]"></span></span>
+                    <h4 class="text-rose-500 font-black uppercase text-xs tracking-widest">Ưu Tiên Xử Lý (No Data & 1 Kiện)</h4>
                 </div>
                 <div class="space-y-6">
                     <div>
@@ -199,10 +204,10 @@
                     </div>
                 </div>
             </div>
-            <div class="bg-white/60 rounded-2xl p-6 border border-amber-100 shadow-sm">
-                <div class="flex items-center gap-2 mb-6 pb-3 border-b border-amber-100">
-                    <span class="w-3 h-3 bg-amber-500 rounded-full animate-pulse"></span>
-                    <h4 class="text-amber-700 font-black uppercase text-xs tracking-widest">Theo Dõi Gần (3-5 Kiện & Trùng Tag)</h4>
+            <div class="bg-slate-900/50 rounded-2xl p-6 border border-amber-900/30 shadow-inner">
+                <div class="flex items-center gap-2 mb-6 pb-3 border-b border-amber-900/30">
+                    <span class="w-3 h-3 bg-amber-500 rounded-full animate-pulse shadow-[0_0_8px_#f59e0b]"></span>
+                    <h4 class="text-amber-500 font-black uppercase text-xs tracking-widest">Theo Dõi Gần (3-5 Kiện & Trùng Tag)</h4>
                 </div>
                 <div class="space-y-6">
                     <div>
@@ -221,32 +226,32 @@
     <!-- CHARTS -->
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
         <div class="glass-card p-6 lg:col-span-2 animate-slide-up" style="animation-delay: 0.7s">
-            <h3 class="text-sm font-bold text-slate-800 uppercase mb-6 flex items-center gap-2"><span class="w-1 h-4 bg-indigo-500 rounded-full"></span>Actual vs iScala & % Chênh Lệch</h3>
+            <h3 class="text-sm font-bold text-white uppercase mb-6 flex items-center gap-2"><span class="w-1 h-4 bg-cyan-500 rounded-full shadow-[0_0_8px_#06b6d4]"></span>Actual vs iScala & % Chênh Lệch</h3>
             <div id="chart-comparison" class="w-full h-96"></div>
         </div>
         <div class="glass-card p-6 animate-slide-up" style="animation-delay: 0.8s">
-            <h3 class="text-sm font-bold text-slate-800 uppercase mb-6 flex items-center gap-2"><span class="w-1 h-4 bg-rose-500 rounded-full"></span>Phân Tích Rủi Ro (Lệch)</h3>
+            <h3 class="text-sm font-bold text-white uppercase mb-6 flex items-center gap-2"><span class="w-1 h-4 bg-rose-500 rounded-full shadow-[0_0_8px_#ff003c]"></span>Phân Tích Rủi Ro (Lệch)</h3>
             <div id="chart-pie-risk" class="w-full h-96 flex flex-col justify-center items-center">
-                <p id="pie-empty-msg" class="text-slate-400 text-xs italic hidden text-center">Không có dữ liệu lệch.</p>
+                <p id="pie-empty-msg" class="text-slate-500 text-xs italic hidden text-center">Không có dữ liệu lệch.</p>
             </div>
         </div>
     </section>
 
     <!-- TABLE -->
     <div class="glass-card overflow-hidden animate-slide-up" style="animation-delay: 0.9s">
-        <div class="flex flex-col sm:flex-row p-4 justify-between bg-white/80 border-b items-center gap-4">
-            <h2 class="text-lg font-extrabold text-slate-800 tracking-tight uppercase">Chi Tiết Tồn Kho Thành Phẩm</h2>
+        <div class="flex flex-col sm:flex-row p-4 justify-between bg-slate-900/80 border-b border-slate-800 items-center gap-4">
+            <h2 class="text-lg font-extrabold text-white tracking-tight uppercase">Chi Tiết Tồn Kho Thành Phẩm</h2>
             <div class="flex gap-2 w-full sm:w-auto">
-                <button onclick="exportTableToExcel()" class="flex-1 sm:flex-none bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-emerald-700 shadow-sm transition-all btn-premium">
+                <button onclick="exportTableToExcel()" class="flex-1 sm:flex-none bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-emerald-700 shadow-sm transition-all btn-cyber">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                     XUẤT EXCEL
                 </button>
-                <input type="text" id="filter-input" placeholder="Tìm nhanh Bin, Tag, Feature..." class="flex-1 sm:w-64 px-4 py-2 border rounded-xl text-sm outline-none bg-white/80 focus:ring-2 ring-indigo-500 transition-all">
+                <input type="text" id="filter-input" placeholder="Tìm nhanh Bin, Tag, Feature..." class="flex-1 sm:w-64 px-4 py-2 border border-slate-700 rounded-xl text-sm outline-none bg-slate-900 text-white placeholder-slate-500 focus:ring-2 ring-cyan-500 transition-all">
             </div>
         </div>
         <div class="table-container overflow-x-auto max-h-[650px]">
             <table class="w-full text-left text-sm whitespace-nowrap border-collapse">
-                <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 sticky top-0 z-10 shadow-sm font-black">
+                <thead class="text-[10px] text-slate-500 uppercase bg-slate-900/80 sticky top-0 z-10 shadow-sm font-black">
                     <tr>
                         <th class="px-6 py-4">Stock Code</th>
                         <th class="px-4 py-4">Feature</th>
@@ -259,30 +264,30 @@
                         <th class="px-4 py-4 text-center">HĐ</th>
                     </tr>
                 </thead>
-                <tbody id="table-body" class="divide-y divide-slate-100 font-medium text-slate-700"></tbody>
+                <tbody id="table-body" class="divide-y divide-slate-800 font-medium text-slate-300"></tbody>
             </table>
         </div>
     </div>
 
-    <!-- MODALS (Sleek Version) -->
+    <!-- MODALS -->
     <div id="modal-inbound" class="modal">
-        <div class="bg-white p-6 rounded-3xl w-[//] max-w-[450px] shadow-2xl mx-4">
+        <div class="bg-slate-900 p-6 rounded-3xl w-full max-w-[450px] shadow-2xl border border-slate-700 mx-4">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="font-black text-lg text-emerald-600 uppercase">Nhập Kho (IN)</h3>
-                <button onclick="closeModal('modal-inbound')" class="text-slate-400 hover:text-red-500 font-bold">X</button>
+                <h3 class="font-black text-lg text-emerald-400 uppercase">Nhập Kho (IN)</h3>
+                <button onclick="closeModal('modal-inbound')" class="text-slate-500 hover:text-rose-500 font-bold">X</button>
             </div>
             <div class="space-y-6">
-                <div class="p-4 border border-emerald-100 rounded-2xl bg-emerald-50/50">
-                    <p class="text-[11px] font-bold text-emerald-800 mb-3 uppercase">Quét thủ công</p>
+                <div class="p-4 border border-emerald-900/50 rounded-2xl bg-emerald-900/20">
+                    <p class="text-[11px] font-bold text-emerald-400 mb-3 uppercase">Quét thủ công</p>
                     <div class="space-y-3">
-                        <input type="text" id="inbound-bin" class="w-full p-2 border rounded-xl bg-white outline-none font-bold text-sm" placeholder="Vị Trí (Bin)...">
-                        <input type="text" id="inbound-tag" class="w-full p-2 border border-emerald-400 rounded-xl bg-white outline-none font-bold text-emerald-700 text-sm" placeholder="Tag ID (Enter)...">
+                        <input type="text" id="inbound-bin" class="w-full p-2 border border-slate-700 rounded-xl bg-slate-800 text-white outline-none font-bold text-sm placeholder-slate-500" placeholder="Vị Trí (Bin)...">
+                        <input type="text" id="inbound-tag" class="w-full p-2 border border-emerald-500 rounded-xl bg-slate-800 text-emerald-400 outline-none font-bold text-sm placeholder-slate-500" placeholder="Tag ID (Enter)...">
                     </div>
                 </div>
-                <div class="p-4 border border-blue-100 rounded-2xl bg-blue-50/50">
-                    <p class="text-[11px] font-bold text-blue-800 mb-3 uppercase">Nhập bằng CSV</p>
-                    <input type="file" id="file-inbound" accept=".csv" class="text-xs w-full mb-2">
-                    <button onclick="uploadInboundCSV()" class="w-full bg-blue-600 text-white text-xs font-bold py-2 rounded-xl hover:bg-blue-700 transition-all">Tải Lên CSV</button>
+                <div class="p-4 border border-blue-900/50 rounded-2xl bg-blue-900/20">
+                    <p class="text-[11px] font-bold text-blue-400 mb-3 uppercase">Nhập bằng CSV</p>
+                    <input type="file" id="file-inbound" accept=".csv" class="text-xs w-full mb-2 text-slate-400">
+                    <button onclick="uploadInboundCSV()" class="w-full bg-blue-600 text-white text-xs font-bold py-2 rounded-xl hover:bg-blue-700 transition-all btn-cyber">Tải Lên CSV</button>
                 </div>
                 <div id="inbound-msg" class="text-xs font-bold text-center h-4"></div>
             </div>
@@ -290,54 +295,54 @@
     </div>
 
     <div id="modal-outbound" class="modal">
-        <div class="bg-white p-6 rounded-3xl w-full max-w-[400px] shadow-2xl mx-4">
+        <div class="bg-slate-900 p-6 rounded-3xl w-full max-w-[400px] shadow-2xl border border-slate-700 mx-4">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="font-black text-lg text-rose-600 uppercase">Xuất Kho (OUT)</h3>
-                <button onclick="closeModal('modal-outbound')" class="text-slate-400 hover:text-red-500 font-bold">X</button>
+                <h3 class="font-black text-lg text-rose-500 uppercase">Xuất Kho (OUT)</h3>
+                <button onclick="closeModal('modal-outbound')" class="text-slate-500 hover:text-rose-500 font-bold">X</button>
             </div>
             <div class="space-y-4">
                 <label class="text-xs font-bold text-slate-500">Mã Tag ID Cần Xuất</label>
-                <input type="text" id="outbound-tag" class="w-full p-2 border border-rose-400 rounded-xl bg-rose-50 outline-none font-bold text-rose-700 text-sm" placeholder="Quét Tag ID (Enter)...">
+                <input type="text" id="outbound-tag" class="w-full p-2 border border-rose-500 rounded-xl bg-slate-800 text-rose-400 outline-none font-bold text-sm placeholder-slate-500" placeholder="Quét Tag ID (Enter)...">
                 <div id="outbound-msg" class="text-xs font-bold text-center h-4"></div>
             </div>
         </div>
     </div>
 
     <div id="modal-upload" class="modal">
-        <div class="bg-white p-6 rounded-3xl w-full max-w-[400px] shadow-2xl mx-4">
+        <div class="bg-slate-900 p-6 rounded-3xl w-full max-w-[400px] shadow-2xl border border-slate-700 mx-4">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="font-black text-lg text-indigo-600 uppercase">Cập Nhật Nguồn</h3>
-                <button onclick="closeModal('modal-upload')" class="text-slate-400 hover:text-red-500 font-bold">X</button>
+                <h3 class="font-black text-lg text-indigo-400 uppercase">Cập Nhật Nguồn</h3>
+                <button onclick="closeModal('modal-upload')" class="text-slate-500 hover:text-rose-500 font-bold">X</button>
             </div>
             <div class="space-y-4">
-                <div class="p-4 border-2 border-dashed border-indigo-200 rounded-2xl bg-indigo-50/50">
-                    <label class="block text-xs font-bold text-indigo-800 mb-2">File: Stock Balance With Batch.csv</label>
-                    <input type="file" id="file-master" accept=".csv" class="text-xs w-full">
+                <div class="p-4 border-2 border-dashed border-indigo-900/50 rounded-2xl bg-indigo-900/20">
+                    <label class="block text-xs font-bold text-indigo-400 mb-2">File: Stock Balance With Batch.csv</label>
+                    <input type="file" id="file-master" accept=".csv" class="text-xs w-full text-slate-400">
                     <p class="text-[10px] text-slate-500 mt-2">Xóa toàn bộ dữ liệu cũ & cập nhật mới.</p>
                 </div>
-                <div id="upload-status" class="text-xs font-bold text-center h-4 text-blue-600"></div>
-                <button onclick="uploadData()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 shadow-lg btn-premium">Tải Lên Hệ Thống</button>
+                <div id="upload-status" class="text-xs font-bold text-center h-4 text-blue-400"></div>
+                <button onclick="uploadData()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 shadow-lg btn-cyber">Tải Lên Hệ Thống</button>
             </div>
         </div>
     </div>
 
     <div id="modal-edit" class="modal">
-        <div class="bg-white p-6 rounded-3xl w-full max-w-[400px] shadow-2xl mx-4">
+        <div class="bg-slate-900 p-6 rounded-3xl w-full max-w-[400px] shadow-2xl border border-slate-700 mx-4">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="font-black text-lg text-amber-600 uppercase">Sửa Nhanh</h3>
-                <button onclick="closeModal('modal-edit')" class="text-slate-400 hover:text-red-500 font-bold">X</button>
+                <h3 class="font-black text-lg text-amber-500 uppercase">Sửa Nhanh</h3>
+                <button onclick="closeModal('modal-edit')" class="text-slate-500 hover:text-rose-500 font-bold">X</button>
             </div>
             <div class="space-y-4">
                 <div>
                     <label class="text-xs font-bold text-slate-500">Mã Tag ID</label>
-                    <input type="text" id="edit-tag" class="w-full mt-1 p-2 border rounded-xl bg-white outline-none font-bold text-sm">
+                    <input type="text" id="edit-tag" class="w-full mt-1 p-2 border border-slate-700 rounded-xl bg-slate-800 text-white outline-none font-bold text-sm">
                 </div>
                 <div>
                     <label class="text-xs font-bold text-slate-500">Vị trí (Bin)</label>
-                    <input type="text" id="edit-bin" class="w-full mt-1 p-2 border rounded-xl bg-white outline-none font-bold text-sm">
+                    <input type="text" id="edit-bin" class="w-full mt-1 p-2 border border-slate-700 rounded-xl bg-slate-800 text-white outline-none font-bold text-sm">
                 </div>
                 <div id="edit-msg" class="text-xs font-bold text-center h-4"></div>
-                <button onclick="saveEdit()" class="w-full bg-amber-500 text-white font-bold py-3 rounded-xl hover:bg-amber-600 shadow-lg btn-premium">Lưu Thay Đổi</button>
+                <button onclick="saveEdit()" class="w-full bg-amber-600 text-white font-bold py-3 rounded-xl hover:bg-amber-700 shadow-lg btn-cyber">Lưu Thay Đổi</button>
             </div>
         </div>
     </div>
@@ -398,27 +403,27 @@
                 let groupRow = document.createElement('tr');
                 groupRow.className = 'group-header';
                 groupRow.innerHTML = `
-                    <td class="px-6 py-4 font-extrabold text-indigo-700 text-xs">FEATURE: ${featKey}</td>
-                    <td class="px-4 py-4 text-[10px] font-bold text-slate-500">${kienCount.toFixed(2)} Kiện</td>
-                    <td class="px-4 py-4 font-black text-slate-800 text-right">${group.sumActual.toLocaleString()}</td>
+                    <td class="px-6 py-4 font-extrabold text-cyan-400 text-xs">FEATURE: ${featKey}</td>
+                    <td class="px-4 py-4 text-[10px] font-bold text-slate-400">${kienCount.toFixed(2)} Kiện</td>
+                    <td class="px-4 py-4 font-black text-white text-right">${group.sumActual.toLocaleString()}</td>
                     <td colspan="6"></td>`;
                 tbody.appendChild(groupRow);
 
                 group.rows.forEach(row => {
-                    let whLoc = row.colE === 'No data' ? `<span class="px-2 py-1 bg-rose-100 text-rose-600 rounded text-[9px] font-bold">No Data</span>` : row.colE;
+                    let whLoc = row.colE === 'No data' ? `<span class="px-2 py-1 bg-rose-900/30 text-rose-500 rounded text-[9px] font-bold">No Data</span>` : row.colE;
                     let detailRow = document.createElement('tr');
-                    detailRow.className = 'hover:bg-slate-50 border-b transition-colors';
+                    detailRow.className = 'hover:bg-slate-800/50 border-b border-slate-800 transition-colors';
                     detailRow.innerHTML = `
-                        <td class="px-6 py-4 text-xs">${row.colA}</td>
-                        <td class="px-4 py-4 text-xs">${row.colB}</td>
-                        <td class="px-4 py-4 text-right font-bold">${Number(row.colC).toLocaleString()}</td>
-                        <td class="px-4 py-4 text-center">${whLoc}</td>
-                        <td class="px-4 py-4 text-xs">${row.colF}</td>
-                        <td class="px-4 py-4 text-[10px]">${row.colG}</td>
-                        <td class="px-4 py-4 text-xs font-mono text-indigo-500 font-bold">${row.colH}</td>
-                        <td class="px-4 py-4 text-xs">${row.colI}</td>
+                        <td class="px-6 py-4 text-xs text-slate-300">${row.colA}</td>
+                        <td class="px-4 py-4 text-xs text-slate-300">${row.colB}</td>
+                        <td class="px-4 py-4 text-right font-bold text-white">${Number(row.colC).toLocaleString()}</td>
+                        <td class="px-4 py-4 text-center text-slate-300">${whLoc}</td>
+                        <td class="px-4 py-4 text-xs text-slate-400">${row.colF}</td>
+                        <td class="px-4 py-4 text-[10px] text-slate-400">${row.colG}</td>
+                        <td class="px-4 py-4 text-xs font-mono text-cyan-400 font-bold">${row.colH}</td>
+                        <td class="px-4 py-4 text-xs text-slate-300">${row.colI}</td>
                         <td class="px-4 py-4 text-center">
-                            <button onclick="openEditModal('${row.colH}', '${row.colI}')" class="text-amber-500 p-1.5 bg-amber-50 rounded-lg border border-amber-200">
+                            <button onclick="openEditModal('${row.colH}', '${row.colI}')" class="text-amber-500 p-1.5 bg-amber-500/10 rounded-lg border border-amber-500/30 hover:bg-amber-500/20">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             </button>
                         </td>`;
@@ -453,14 +458,14 @@
             percEl.innerText = `${diffPercent}%`;
 
             if (diff === 0) {
-                diffEl.className = "text-2xl md:text-3xl font-black text-emerald-500";
-                percEl.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600";
+                diffEl.className = "text-2xl md:text-3xl font-black text-emerald-400";
+                percEl.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-900/30 text-emerald-400";
             } else if (Math.abs(diffPercent) < 5) {
-                diffEl.className = "text-2xl md:text-3xl font-black text-amber-500";
-                percEl.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-600";
+                diffEl.className = "text-2xl md:text-3xl font-black text-amber-400";
+                percEl.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-900/30 text-amber-400";
             } else {
-                diffEl.className = "text-2xl md:text-3xl font-black text-rose-600";
-                percEl.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-600";
+                diffEl.className = "text-2xl md:text-3xl font-black text-rose-500";
+                percEl.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-900/30 text-rose-500";
             }
 
             let dups = Object.keys(tagFreq).filter(t => tagFreq[t] > 1);
@@ -473,26 +478,26 @@
             const grouped = groupDataByFeature(rawData);
             const noDataTags = rawData.filter(r => r.colA === 'No data').map(r => r.colH);
             document.getElementById('analysis-no-data').innerHTML = noDataTags.length > 0 
-                ? noDataTags.map(t => `<div class="px-2 py-1 bg-rose-50 border border-rose-200 rounded-lg text-[10px] font-bold text-rose-700">${t}</div>`).join('') 
-                : '<span class="text-xs text-slate-400 italic">An toàn</span>';
+                ? noDataTags.map(t => `<div class="px-2 py-1 bg-rose-900/20 border border-rose-900/50 rounded-lg text-[10px] font-bold text-rose-400">${t}</div>`).join('') 
+                : '<span class="text-xs text-slate-500 italic">An toàn</span>';
             const lowStock = Object.keys(grouped).filter(k => {
                 const g = grouped[k];
                 return g.maxQty > 0 && ((g.sumActual / 2) / g.maxQty) < 2 && k !== 'No data';
             });
             document.getElementById('analysis-low-stock').innerHTML = lowStock.length > 0 
-                ? lowStock.map(k => `<div class="px-2 py-1 bg-rose-50 border border-rose-200 rounded-lg text-[10px] font-bold text-rose-700">${k}</div>`).join('') 
-                : '<span class="text-xs text-slate-400 italic">Đủ số lượng</span>';
+                ? lowStock.map(k => `<div class="px-2 py-1 bg-rose-900/20 border border-rose-900/50 rounded-lg text-[10px] font-bold text-rose-400">${k}</div>`).join('') 
+                : '<span class="text-xs text-slate-500 italic">Đủ số lượng</span>';
             document.getElementById('analysis-duplicates').innerHTML = dups.length > 0 
-                ? dups.map(t => `<div class="px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-[10px] font-bold text-amber-700">${t}</div>`).join('') 
-                : '<span class="text-xs text-slate-400 italic">Không trùng</span>';
+                ? dups.map(t => `<div class="px-2 py-1 bg-amber-900/20 border border-amber-900/50 rounded-lg text-[10px] font-bold text-amber-400">${t}</div>`).join('') 
+                : '<span class="text-xs text-slate-500 italic">Không trùng</span>';
             const midStock = Object.keys(grouped).filter(k => {
                 const g = grouped[k];
                 const kien = g.maxQty > 0 ? ((g.sumActual / 2) / g.maxQty) : 0;
                 return kien >= 3 && kien <= 5 && k !== 'No data';
             });
             document.getElementById('analysis-mid-stock').innerHTML = midStock.length > 0 
-                ? midStock.map(k => `<div class="px-2 py-1 bg-amber-50 border border-amber-200 rounded-lg text-[10px] font-bold text-amber-700">${k}</div>`).join('') 
-                : '<span class="text-xs text-slate-400 italic">Không có</span>';
+                ? midStock.map(k => `<div class="px-2 py-1 bg-amber-900/20 border border-amber-900/50 rounded-lg text-[10px] font-bold text-amber-400">${k}</div>`).join('') 
+                : '<span class="text-xs text-slate-500 italic">Không có</span>';
         }
 
         function renderCharts() {
@@ -523,18 +528,19 @@
                     type: 'line', 
                     toolbar: { show: true },
                     zoom: { enabled: true },
-                    animations: { enabled: true, easing: 'easeinout', speed: 800 }
+                    animations: { enabled: true, easing: 'easeinout', speed: 800 },
+                    foreColor: '#94a3b8'
                 },
                 stroke: { width: [0, 0, 3], curve: 'smooth' },
-                plotOptions: { bar: { columnWidth: '60%', borderRadius: 6 } },
-                colors: ['#6366f1', '#cbd5e1', '#f43f5e'],
+                plotOptions: { bar: { columnWidth: '60%', borderRadius: 4 } },
+                colors: ['#6366f1', '#334155', '#ff003c'],
                 xaxis: { categories: labels, labels: { style: { fontSize: '10px', fontWeight: 600 } } },
                 yaxis: [
                     { title: { text: 'Số lượng PCS' }, labels: { formatter: (val) => val.toFixed(0) } },
                     { opposite: true, title: { text: 'Tỉ lệ lệch %' }, labels: { formatter: (val) => val + '%' } }
                 ],
                 legend: { position: 'top', horizontalAlign: 'right' },
-                tooltip: { shared: true, intersect: false }
+                tooltip: { theme: 'dark', shared: true, intersect: false }
             });
             chartBar.render();
 
@@ -542,9 +548,9 @@
                 document.getElementById('pie-empty-msg').classList.add('hidden');
                 if (chartPie) chartPie.destroy();
                 chartPie = new ApexCharts(document.querySelector("#chart-pie-risk"), {
-                    series: pieData, labels: pieLabels, chart: { type: 'donut', height: 380 },
-                    colors: ['#f43f5e', '#fb923c', '#fbbf24', '#38bdf8', '#818cf8'],
-                    plotOptions: { pie: { donut: { labels: { show: true, total: { show: true, label: 'TỔNG LỆCH' } } } } }
+                    series: pieData, labels: pieLabels, chart: { type: 'donut', height: 380, foreColor: '#94a3b8' },
+                    colors: ['#ff003c', '#fcee0a', '#00f0ff', '#818cf8', '#fb923c'],
+                    plotOptions: { pie: { donut: { labels: { show: true, total: { show: true, label: 'TỔNG LỆCH', color: '#fff' } } } } }
                 });
                 chartPie.render();
             } else {
@@ -714,7 +720,7 @@
 </body>
     <footer class="fixed bottom-4 left-0 w-full text-center pointer-events-none">
     <p class="text-[10px] font-futuristic text-slate-500 uppercase tracking-[0.2em] opacity-50 hover:opacity-100 transition-opacity duration-500">
-        Engineered by Vinh © 2026 | AI Inventory System Core.
+        Engineered by Vinh © 2026 | Cyber-Inventory Core.
     </p>
 </footer>
 </html>
