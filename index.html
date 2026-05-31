@@ -1,9 +1,11 @@
+--- START OF FILE index.html ---
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WHMFG PRO | Cyber-Inventory v5.0</title>
+    <title>WHS FG | By Vinh</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -14,208 +16,217 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --cyber-yellow: #fcee0a; 
-            --cyber-blue: #00f0ff; 
-            --cyber-pink: #ff003c; 
-            --bg-dark: #020617; 
-            --card-dark: rgba(15, 23, 42, 0.8);
-            --border-dark: #1e293b;
+            --primary-glow: rgba(79, 70, 229, 0.6);
+            --accent-glow: rgba(6, 182, 212, 0.6);
         }
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: var(--bg-dark); 
-            background-image: 
-                radial-gradient(circle at 2px 2px, #1e293b 1px, transparent 0);
-            background-size: 40px 40px;
-            color: #f1f5f9; 
+            /* ĐÃ CẬP NHẬT: Sử dụng file wallpaper4k.png trong cùng thư mục */
+            background-image: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)), 
+                              url('wallpaper4k.png'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #f8fafc; 
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
-            text-rendering: optimizeLegibility;
-            overflow-x: hidden;
         }
-        /* Glassmorphism Dark Mode */
+        
+        /* Glassmorphism 2.0 - Hiệu ứng kính mờ cao cấp */
         .glass-card { 
-            background: var(--card-dark); 
-            border-radius: 16px; 
-            box-shadow: 0 0 20px rgba(0,0,0,0.5); 
-            border: 1px solid var(--border-dark); 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            position: relative;
+            background: rgba(255, 255, 255, 0.07); 
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 28px; 
+            border: 1px solid rgba(255, 255, 255, 0.125); 
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
         }
         .glass-card:hover { 
-            transform: translateY(-4px); 
-            border-color: var(--cyber-blue);
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+            transform: translateY(-8px) scale(1.01); 
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 30px rgba(99, 102, 238, 0.3);
         }
+        
         .group-header { 
-            background: rgba(30, 41, 59, 0.7) !important; 
-            border-left: 4px solid var(--cyber-yellow); 
-            color: var(--cyber-yellow) !important;
+            background: rgba(255, 255, 255, 0.05) !important; 
+            border-left: 6px solid #6366f1; 
+            color: #e0e7ff !important;
             font-weight: 800; 
         }
-        #loading { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: var(--bg-dark); backdrop-filter: blur(10px); 
-            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; 
-        }
-        .spinner { 
-            width: 40px; height: 40px; border: 4px solid #1e293b; border-top: 4px solid var(--cyber-blue); 
-            border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px; 
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .modal { display: none; position: fixed; inset: 0; background: rgba(2, 6, 23, 0.8); backdrop-filter: blur(8px); z-index: 10000; justify-content: center; align-items: center; }
-        .modal.active { display: flex; animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        @keyframes modalIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
+        /* Sticky Header với hiệu ứng lơ lửng */
         .sticky-header {
-            position: sticky; top: 0; z-index: 50;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(12px);
-            border-bottom: 2px solid var(--cyber-blue);
+            position: sticky; top: 20px; z-index: 50;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
             transition: all 0.3s ease;
         }
 
-        .animate-slide-up {
-            animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        /* Loading Screen AI */
+        #loading { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #0f172a; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; 
+        }
+        .spinner { 
+            width: 60px; height: 60px; border: 4px solid rgba(99, 102, 238, 0.1); border-top: 4px solid #6366f1; 
+            border-radius: 50%; animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite; margin-bottom: 20px; 
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); z-index: 10000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; animation: modalZoom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes modalZoom { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+
+        /* Premium Buttons */
+        .btn-premium {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .btn-premium:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(99, 102, 238, 0.5);
+            filter: brightness(1.2);
+        }
+        .btn-premium::after {
+            content: '';
+            position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            transform: scale(0); transition: transform 0.5s ease;
+        }
+        .btn-premium:hover::after { transform: scale(1); }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
             opacity: 0;
         }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .btn-cyber {
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border: 1px solid transparent;
-        }
-        .btn-cyber:hover {
-            filter: brightness(1.2);
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px currentColor;
-        }
-        .btn-cyber:active { transform: scale(0.95); }
-
-        @media (max-width: 768px) {
-            .header-container { flex-direction: column; align-items: flex-start; gap: 1rem; }
-            .header-buttons { width: 100%; grid-template-columns: repeat(2, 1fr); }
-            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+        ::-webkit-scrollbar-thumb { background: rgba(99, 102, 238, 0.5); border-radius: 10px; }
     </style>
 </head>
 <body class="p-4 md:p-6 pb-20 max-w-[1600px] mx-auto">
 
     <div id="loading">
         <div class="spinner"></div>
-        <p class="font-bold text-cyan-400 animate-pulse uppercase tracking-widest">Initializing System...</p>
+        <p class="font-black text-indigo-400 animate-pulse uppercase tracking-[0.3em] text-sm">Loading...</p>
     </div>
 
     <!-- STICKY HEADER -->
-    <header class="sticky-header p-4 md:p-6 mb-8 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-end shadow-lg">
-        <div>
+    <header class="sticky-header p-4 md:p-6 mb-10 flex flex-col md:flex-row justify-between items-start md:items-center shadow-2xl">
+        <div class="mb-4 md:mb-0">
             <div class="flex items-center gap-2 mb-1">
-                <span class="w-2 h-2 bg-cyan-400 rounded-full animate-ping"></span>
-                <p class="text-[10px] font-bold text-cyan-400 tracking-widest uppercase">Cyber-Inventory Core v5.0</p>
+                <span class="w-2 h-2 bg-indigo-500 rounded-full animate-ping"></span>
+                <p class="text-[10px] font-bold text-indigo-400 tracking-widest uppercase">Iventory Analytics v5.0</p>
             </div>
-            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">WHM <span class="text-cyan-400">System Pro</span></h1>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">WHS <span class="text-indigo-500">FG Pro</span></h1>
         </div>
-        <div class="w-full md:w-auto mt-4 md:mt-0">
+        <div class="w-full md:w-auto">
             <div class="grid grid-cols-2 sm:flex gap-3 justify-end items-center">
-                <button onclick="openModal('modal-upload')" class="btn-cyber bg-indigo-600 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm">
+                <button onclick="openModal('modal-upload')" class="btn-premium bg-indigo-600/80 text-white px-5 py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                    NGUỒN
+                    NGUỒN (SOURCE)
                 </button>
-                <button onclick="openModal('modal-inbound')" class="btn-cyber bg-emerald-600 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0, 0 24, 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                <button onclick="openModal('modal-inbound')" class="btn-premium bg-emerald-600/80 text-white px-5 py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                     NHẬP (IN)
                 </button>
-                <button onclick="openModal('modal-outbound')" class="btn-cyber bg-rose-600 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm">
+                <button onclick="openModal('modal-outbound')" class="btn-premium bg-rose-600/80 text-white px-5 py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     XUẤT (OUT)
                 </button>
-                <button onclick="fetchData()" class="btn-cyber bg-slate-800 text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-sm border border-slate-600">
+                <button onclick="fetchData()" class="btn-premium bg-slate-800/80 text-white px-5 py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg border border-slate-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                    REFRESH
+                    LÀM MỚI (REFRESH)
                 </button>
             </div>
-            <p class="text-right text-[10px] font-medium text-slate-500 mt-2">System Sync: <span id="last-update" class="text-cyan-400 font-bold">--:--</span></p>
+            <p class="text-right text-[10px] font-medium text-slate-400 mt-2">Syncing with Cloud... <span id="last-update" class="text-indigo-400 font-bold">--:--</span></p>
         </div>
     </header>
 
-    <!-- KPI CARDS -->
-    <section class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
-        <div class="glass-card p-4 md:p-6 border-b-4 border-indigo-500 animate-slide-up" style="animation-delay: 0.1s">
-            <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">Tổng Tồn Thực</p>
-            <h3 class="text-2xl md:text-3xl font-black text-white" id="kpi-total-actual">0</h3>
-            <p class="text-[9px] text-slate-500 mt-1 uppercase font-bold">PCS (Actual)</p>
+    <!-- KPI CARDS (HYPER-GLOW) -->
+    <section class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-10">
+        <div class="glass-card p-6 border-b-4 border-indigo-500 animate-fade-in" style="animation-delay: 0.1s">
+            <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-2 tracking-wider">Tổng Tồn Thực Tế</p>
+            <h3 class="text-3xl font-black text-white" id="kpi-total-actual">0</h3>
+            <p class="text-[9px] text-slate-500 mt-2 uppercase font-bold">PCS (Actual)</p>
         </div>
-        <div class="glass-card p-4 md:p-6 border-b-4 border-blue-500 animate-slide-up" style="animation-delay: 0.2s">
-            <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">Lệch Hệ Thống</p>
+        <div class="glass-card p-6 border-b-4 border-blue-500 animate-fade-in" style="animation-delay: 0.2s">
+            <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-2">Chênh Lệch Hệ Thống</p>
             <div class="flex items-baseline gap-2">
-                <h3 class="text-2xl md:text-3xl font-black" id="kpi-diff">0</h3>
-                <span id="kpi-diff-percent" class="text-[10px] font-bold px-2 py-0.5 rounded-full">0%</span>
+                <h3 class="text-3xl font-black" id="kpi-diff">0</h3>
+                <span id="kpi-diff-percent" class="text-xs font-bold px-2 py-0.5 rounded-full">0%</span>
             </div>
-            <p class="text-[9px] text-slate-500 mt-1 uppercase font-bold">vs iScala</p>
+            <p class="text-[9px] text-slate-500 mt-2 uppercase font-bold">vs iScala</p>
         </div>
-        <div class="glass-card p-4 md:p-6 border-b-4 border-rose-500 animate-slide-up" style="animation-delay: 0.3s">
-            <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">Tag No Data</p>
-            <h3 class="text-2xl md:text-3xl font-black text-rose-500" id="kpi-nodata">0</h3>
-            <p class="text-[9px] text-rose-400 mt-1 uppercase font-bold">Data Error</p>
+        <div class="glass-card p-6 border-b-4 border-rose-500 animate-fade-in" style="animation-delay: 0.3s">
+            <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-2">TagID Không khớp</p>
+            <h3 class="text-3xl font-black text-rose-500" id="kpi-nodata">0</h3>
+            <p class="text-[9px] text-rose-400 mt-2 uppercase font-bold">No Data</p>
         </div>
-        <div class="glass-card p-4 md:p-6 border-b-4 border-amber-500 animate-slide-up" style="animation-delay: 0.4s">
-            <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">Cần Chuyển Kho</p>
-            <h3 class="text-2xl md:text-3xl font-black text-amber-500" id="kpi-move">0</h3>
-            <p class="text-[9px] text-amber-400 mt-1 font-bold">(WH 62, 01)</p>
+        <div class="glass-card p-6 border-b-4 border-amber-500 animate-fade-in" style="animation-delay: 0.4s">
+            <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-2">Cần Chuyển Kho</p>
+            <h3 class="text-3xl font-black text-amber-500" id="kpi-move">0</h3>
+            <p class="text-[9px] text-amber-400 mt-2 font-bold">(WH 62 & 01)</p>
         </div>
-        <div class="glass-card p-4 md:p-6 border-b-4 border-red-600 animate-slide-up" style="animation-delay: 0.5s">
-            <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-1">Trùng Tag</p>
-            <h3 class="text-2xl md:text-3xl font-black text-red-500" id="kpi-duplicates">0</h3>
-            <p class="text-[9px] text-red-400 mt-1 uppercase font-bold">Verify required</p>
+        <div class="glass-card p-6 border-b-4 border-red-600 animate-fade-in" style="animation-delay: 0.5s">
+            <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-2">Trùng TagID</p>
+            <h3 class="text-3xl font-black text-red-500" id="kpi-duplicates">0</h3>
+            <p class="text-[9px] text-red-400 mt-2 uppercase font-bold">Verify required</p>
         </div>
     </section>
 
     <!-- ANALYSIS PANEL -->
-    <section class="glass-card p-6 mb-10 border-t-4 border-slate-700 animate-slide-up" style="animation-delay: 0.6s">
+    <section class="glass-card p-6 mb-10 border-t-4 border-indigo-500 animate-fade-in" style="animation-delay: 0.6s">
         <div class="flex items-center gap-2 mb-6">
-            <div class="w-2 h-6 bg-cyan-500 rounded-full shadow-[0_0_10px_#06b6d4]"></div>
+            <div class="w-2 h-6 bg-indigo-500 rounded-full shadow-[0_0_10px_#6366f1]"></div>
             <h3 class="text-sm font-extrabold text-white uppercase tracking-widest">Trung Tâm Cảnh Báo Rủi Ro</h3>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-slate-900/50 rounded-2xl p-6 border border-rose-900/30 shadow-inner">
-                <div class="flex items-center gap-2 mb-6 pb-3 border-b border-rose-900/30">
+            <div class="bg-slate-900/40 rounded-2xl p-6 border border-rose-500/20 backdrop-blur-md">
+                <div class="flex items-center gap-2 mb-6 pb-3 border-b border-rose-500/20">
                     <span class="flex h-3 w-3 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-rose-600 shadow-[0_0_8px_#ff003c]"></span></span>
-                    <h4 class="text-rose-500 font-black uppercase text-xs tracking-widest">Ưu Tiên Xử Lý (No Data & 1 Kiện)</h4>
+                    <h4 class="text-rose-400 font-black uppercase text-xs tracking-widest">Ưu Tiên Xử Lý (No Data & 1 Kiện)</h4>
                 </div>
                 <div class="space-y-6">
                     <div>
-                        <p class="text-[10px] font-extrabold text-slate-500 uppercase mb-3">Tag ID Lỗi No Data</p>
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-3">Tag ID Lỗi "No Data"</p>
                         <div id="analysis-no-data" class="flex flex-wrap gap-2"></div>
                     </div>
                     <div>
-                        <p class="text-[10px] font-extrabold text-slate-500 uppercase mb-3">Feature Thiếu Hụt (1 Kiện)</p>
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-3">Feature Tồn Thấp (1 Kiện)</p>
                         <div id="analysis-low-stock" class="flex flex-wrap gap-2"></div>
                     </div>
                 </div>
             </div>
-            <div class="bg-slate-900/50 rounded-2xl p-6 border border-amber-900/30 shadow-inner">
-                <div class="flex items-center gap-2 mb-6 pb-3 border-b border-amber-900/30">
+            <div class="bg-slate-900/40 rounded-2xl p-6 border border-amber-500/20 backdrop-blur-md">
+                <div class="flex items-center gap-2 mb-6 pb-3 border-b border-amber-500/20">
                     <span class="w-3 h-3 bg-amber-500 rounded-full animate-pulse shadow-[0_0_8px_#f59e0b]"></span>
-                    <h4 class="text-amber-500 font-black uppercase text-xs tracking-widest">Theo Dõi Gần (3-5 Kiện & Trùng Tag)</h4>
+                    <h4 class="text-amber-400 font-black uppercase text-xs tracking-widest">Theo Dõi Gần (3-5 Kiện & Trùng Tag)</h4>
                 </div>
                 <div class="space-y-6">
                     <div>
-                        <p class="text-[10px] font-extrabold text-slate-500 uppercase mb-3">Tag ID Bị Trùng</p>
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-3">Tag ID Bị Trùng</p>
                         <div id="analysis-duplicates" class="flex flex-wrap gap-2"></div>
                     </div>
                     <div>
-                        <p class="text-[10px] font-extrabold text-slate-500 uppercase mb-3">Feature Sắp Hết (3-5 Kiện)</p>
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-3">Feature Sắp Hết (3-5 Kiện)</p>
                         <div id="analysis-mid-stock" class="flex flex-wrap gap-2"></div>
                     </div>
                 </div>
@@ -225,11 +236,11 @@
 
     <!-- CHARTS -->
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-        <div class="glass-card p-6 lg:col-span-2 animate-slide-up" style="animation-delay: 0.7s">
-            <h3 class="text-sm font-bold text-white uppercase mb-6 flex items-center gap-2"><span class="w-1 h-4 bg-cyan-500 rounded-full shadow-[0_0_8px_#06b6d4]"></span>Actual vs iScala & % Chênh Lệch</h3>
+        <div class="glass-card p-6 lg:col-span-2 animate-fade-in" style="animation-delay: 0.7s">
+            <h3 class="text-sm font-bold text-white uppercase mb-6 flex items-center gap-2"><span class="w-1 h-4 bg-indigo-500 rounded-full shadow-[0_0_8px_#6366f1]"></span>Actual vs iScala & % Chênh Lệch</h3>
             <div id="chart-comparison" class="w-full h-96"></div>
         </div>
-        <div class="glass-card p-6 animate-slide-up" style="animation-delay: 0.8s">
+        <div class="glass-card p-6 animate-fade-in" style="animation-delay: 0.8s">
             <h3 class="text-sm font-bold text-white uppercase mb-6 flex items-center gap-2"><span class="w-1 h-4 bg-rose-500 rounded-full shadow-[0_0_8px_#ff003c]"></span>Phân Tích Rủi Ro (Lệch)</h3>
             <div id="chart-pie-risk" class="w-full h-96 flex flex-col justify-center items-center">
                 <p id="pie-empty-msg" class="text-slate-500 text-xs italic hidden text-center">Không có dữ liệu lệch.</p>
@@ -238,30 +249,30 @@
     </section>
 
     <!-- TABLE -->
-    <div class="glass-card overflow-hidden animate-slide-up" style="animation-delay: 0.9s">
-        <div class="flex flex-col sm:flex-row p-4 justify-between bg-slate-900/80 border-b border-slate-800 items-center gap-4">
-            <h2 class="text-lg font-extrabold text-white tracking-tight uppercase">Chi Tiết Tồn Kho Thành Phẩm</h2>
+    <div class="glass-card overflow-hidden animate-fade-in" style="animation-delay: 0.9s">
+        <div class="flex flex-col sm:flex-row p-4 justify-between bg-slate-900/60 border-b border-slate-800 items-center gap-4">
+            <h2 class="text-lg font-extrabold text-white tracking-tight uppercase">Bảng Chi Tiết Tồn Kho Thành Phẩm</h2>
             <div class="flex gap-2 w-full sm:w-auto">
-                <button onclick="exportTableToExcel()" class="flex-1 sm:flex-none bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-emerald-700 shadow-sm transition-all btn-cyber">
+                <button onclick="exportTableToExcel()" class="flex-1 sm:flex-none bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-emerald-700 shadow-lg transition-all btn-premium">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                     XUẤT EXCEL
                 </button>
-                <input type="text" id="filter-input" placeholder="Tìm nhanh Bin, Tag, Feature..." class="flex-1 sm:w-64 px-4 py-2 border border-slate-700 rounded-xl text-sm outline-none bg-slate-900 text-white placeholder-slate-500 focus:ring-2 ring-cyan-500 transition-all">
+                <input type="text" id="filter-input" placeholder="Tìm nhanh Bin, Tag, Feature..." class="flex-1 sm:w-64 px-4 py-2 border border-slate-700 rounded-xl text-sm outline-none bg-slate-900/50 text-white placeholder-slate-500 focus:ring-2 ring-indigo-500 transition-all">
             </div>
         </div>
         <div class="table-container overflow-x-auto max-h-[650px]">
             <table class="w-full text-left text-sm whitespace-nowrap border-collapse">
-                <thead class="text-[10px] text-slate-500 uppercase bg-slate-900/80 sticky top-0 z-10 shadow-sm font-black">
+                <thead class="text-[10px] text-slate-400 uppercase bg-slate-900/80 sticky top-0 z-10 shadow-sm font-black">
                     <tr>
                         <th class="px-6 py-4">Stock Code</th>
                         <th class="px-4 py-4">Feature</th>
                         <th class="px-4 py-4 text-right">Actual</th>
                         <th class="px-4 py-4 text-center">Warehouse</th>
-                        <th class="px-4 py-4">Update</th>
-                        <th class="px-4 py-4">Create</th>
+                        <th class="px-4 py-4">STOCK-Update</th>
+                        <th class="px-4 py-4">CreateDATE</th>
                         <th class="px-4 py-4">Tag ID</th>
                         <th class="px-4 py-4">Bin</th>
-                        <th class="px-4 py-4 text-center">HĐ</th>
+                        <th class="px-4 py-4 text-center">Hành Động</th>
                     </tr>
                 </thead>
                 <tbody id="table-body" class="divide-y divide-slate-800 font-medium text-slate-300"></tbody>
@@ -287,7 +298,7 @@
                 <div class="p-4 border border-blue-900/50 rounded-2xl bg-blue-900/20">
                     <p class="text-[11px] font-bold text-blue-400 mb-3 uppercase">Nhập bằng CSV</p>
                     <input type="file" id="file-inbound" accept=".csv" class="text-xs w-full mb-2 text-slate-400">
-                    <button onclick="uploadInboundCSV()" class="w-full bg-blue-600 text-white text-xs font-bold py-2 rounded-xl hover:bg-blue-700 transition-all btn-cyber">Tải Lên CSV</button>
+                    <button onclick="uploadInboundCSV()" class="w-full bg-blue-600 text-white text-xs font-bold py-2 rounded-xl hover:bg-blue-700 transition-all btn-premium">Tải Lên CSV</button>
                 </div>
                 <div id="inbound-msg" class="text-xs font-bold text-center h-4"></div>
             </div>
@@ -321,7 +332,7 @@
                     <p class="text-[10px] text-slate-500 mt-2">Xóa toàn bộ dữ liệu cũ & cập nhật mới.</p>
                 </div>
                 <div id="upload-status" class="text-xs font-bold text-center h-4 text-blue-400"></div>
-                <button onclick="uploadData()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 shadow-lg btn-cyber">Tải Lên Hệ Thống</button>
+                <button onclick="uploadData()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 shadow-lg btn-premium">Tải Lên Hệ Thống</button>
             </div>
         </div>
     </div>
@@ -342,7 +353,7 @@
                     <input type="text" id="edit-bin" class="w-full mt-1 p-2 border border-slate-700 rounded-xl bg-slate-800 text-white outline-none font-bold text-sm">
                 </div>
                 <div id="edit-msg" class="text-xs font-bold text-center h-4"></div>
-                <button onclick="saveEdit()" class="w-full bg-amber-600 text-white font-bold py-3 rounded-xl hover:bg-amber-700 shadow-lg btn-cyber">Lưu Thay Đổi</button>
+                <button onclick="saveEdit()" class="w-full bg-amber-600 text-white font-bold py-3 rounded-xl hover:bg-amber-700 shadow-lg btn-premium">Lưu Thay Đổi</button>
             </div>
         </div>
     </div>
@@ -558,9 +569,6 @@
             }
         }
 
-        // ========================================================
-        // MODULES: IMPORT/EXPORT/EDIT
-        // ========================================================
         async function uploadData() {
             const fMaster = document.getElementById('file-master').files[0];
             const statusDiv = document.getElementById('upload-status');
@@ -720,7 +728,7 @@
 </body>
     <footer class="fixed bottom-4 left-0 w-full text-center pointer-events-none">
     <p class="text-[10px] font-futuristic text-slate-500 uppercase tracking-[0.2em] opacity-50 hover:opacity-100 transition-opacity duration-500">
-        Engineered by Vinh © 2026 | Cyber-Inventory Core.
+        Engineered by Vinh © 2026 | Inventory Core v5.0
     </p>
 </footer>
 </html>
