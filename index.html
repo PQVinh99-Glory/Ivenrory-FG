@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WHS FG PRO | Ultra-Premium Analytics</title>
+    <title>WMS FG PRO | By Vinh Ver1</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -120,9 +120,9 @@
         <div class="mb-4 md:mb-0">
             <div class="flex items-center gap-2 mb-1">
                 <span class="w-2 h-2 bg-indigo-500 rounded-full animate-ping"></span>
-                <p class="text-[10px] font-bold text-indigo-400 tracking-widest uppercase">Enterprise Analytics v5.0</p>
+                <p class="text-[10px] font-bold text-indigo-400 tracking-widest uppercase">Inventory Analysis</p>
             </div>
-            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">WHS <span class="text-indigo-500 neon-text-indigo">FG Pro</span></h1>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">WMS <span class="text-indigo-500 neon-text-indigo">FG Pro</span></h1>
         </div>
         <div class="w-full md:w-auto">
             <div class="grid grid-cols-2 sm:flex gap-3 justify-end items-center">
@@ -345,7 +345,22 @@
         </div>
     </div>
 
-    <!-- NEW CUSTOM CONFIRM MODAL -->
+    <!-- MODAL LỰA CHỌN VỊ TRÍ KHI XUẤT TRÙNG -->
+    <div id="modal-select-bin" class="modal">
+        <div class="bg-slate-900 p-6 rounded-3xl w-full max-w-[450px] shadow-2xl border border-rose-500/30 mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-black text-lg text-rose-400 uppercase">Lựa Chọn Vị Trí Xuất</h3>
+                <button onclick="closeModal('modal-select-bin')" class="text-slate-500 hover:text-rose-500 font-bold">X</button>
+            </div>
+            <p class="text-slate-400 text-xs mb-4">Tag ID này hiện có tại nhiều vị trí. Vui lòng chọn chính xác vị trí cần xuất:</p>
+            <div id="bin-selection-list" class="space-y-3 max-h-60 overflow-y-auto pr-2">
+                <!-- Danh sách Bin sẽ render ở đây -->
+            </div>
+            <div id="select-bin-msg" class="text-xs font-bold text-center mt-4 h-4"></div>
+        </div>
+    </div>
+
+    <!-- CUSTOM CONFIRM MODAL -->
     <div id="modal-confirm" class="modal">
         <div class="bg-slate-900 p-8 rounded-3xl w-full max-w-[400px] shadow-2xl border border-indigo-500/30 mx-4 text-center">
             <div class="w-16 h-16 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-indigo-500/50">
@@ -677,6 +692,11 @@
             const msg = document.getElementById('edit-msg');
             msg.innerHTML = '<span class="text-blue-500">Đang lưu...</span>';
             
+            if(!rowId || rowId === 'undefined') {
+                msg.innerHTML = `<span class="text-red-500">Lỗi: Không tìm thấy ID dòng!</span>`;
+                return;
+            }
+
             const { error } = await supabaseClient.from('inventory').update({ tag_id: newTag, bin: newBin }).eq('id', rowId);
             
             if (error) msg.innerHTML = `<span class="text-red-500">Lỗi: ${error.message}</span>`;
@@ -749,11 +769,52 @@
             }
         });
 
+        // --- NÂNG CẤP: XỬ LÝ XUẤT KHO TRÙNG TAG ---
         document.getElementById('outbound-tag').addEventListener('keydown', async function(e) {
             if(e.key === 'Enter') {
                 const tag = this.value;
-                const { error } = await supabaseClient.from('inventory').delete().eq('tag_id', tag);
-                if (error) alert(error.message); else { this.value = ''; fetchData(); }
+                if(!tag) return;
+
+                const { data: results, error: searchError } = await supabaseClient
+                    .from('inventory')
+                    .select('id, bin')
+                    .eq('tag_id', tag);
+
+                if (searchError) {
+                    alert("Lỗi hệ thống khi kiểm tra dữ liệu!");
+                    return;
+                }
+
+                if (!results || results.length === 0) {
+                    alert("Không tìm thấy Tag ID này trong hệ thống!");
+                    return;
+                }
+
+                if (results.length === 1) {
+                    // Chỉ có 1 con hàng -> Xóa luôn
+                    const { error } = await supabaseClient.from('inventory').delete().eq('id', results[0].id);
+                    if (error) alert(error.message); else { this.value = ''; fetchData(); }
+                } else {
+                    // CÓ NHIỀU CON HÀNG TRÙNG TAG -> HIỆN MODAL LỰA CHỌN
+                    const listDiv = document.getElementById('bin-selection-list');
+                    listDiv.innerHTML = '';
+                    
+                    results.forEach(row => {
+                        const btn = document.createElement('button');
+                        btn.className = "w-full flex justify-between items-center p-3 bg-slate-800 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition-all border border-slate-700";
+                        btn.innerHTML = `<span>Vị trí: <span class="text-indigo-300">${row.bin || 'N/A'}</span></span> <span class="text-[10px] opacity-50">${row.id.substring(0,8)}...</span>`;
+                        btn.onclick = async () => {
+                            const { error } = await supabaseClient.from('inventory').delete().eq('id', row.id);
+                            if (error) alert(error.message); else { 
+                                closeModal('modal-select-bin');
+                                this.value = ''; 
+                                fetchData(); 
+                            }
+                        };
+                        listDiv.appendChild(btn);
+                    });
+                    openModal('modal-select-bin');
+                }
             }
         });
 
@@ -782,7 +843,7 @@
 </body>
     <footer class="fixed bottom-4 left-0 w-full text-center pointer-events-none">
     <p class="text-[10px] font-futuristic text-slate-500 uppercase tracking-[0.2em] opacity-50 hover:opacity-100 transition-opacity duration-500">
-        Engineered by Vinh © 2026 | Ultra-Premium Inventory Core v5.0
+        Engineered by Vinh © 2026 | Ultra-Premium Inventory Core 
     </p>
 </footer>
 </html>
