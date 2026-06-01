@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WHS FG PRO | By Vinh V6.1</title>
+    <title>WHS FG PRO | Ultra-Premium Analytics</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -30,7 +30,6 @@
             -webkit-font-smoothing: antialiased;
         }
         
-        /* Glassmorphism 4.0 - Siêu mờ, khoe nền 4K */
         .glass-card { 
             background: rgba(255, 255, 255, 0.03); 
             backdrop-filter: blur(30px) saturate(160%);
@@ -61,7 +60,6 @@
             border-radius: 24px;
         }
 
-        /* Neon Effects */
         .btn-premium {
             transition: all 0.3s ease;
             position: relative;
@@ -75,7 +73,6 @@
         .neon-text-indigo { text-shadow: 0 0 12px rgba(99, 102, 241, 0.8); }
         .neon-text-rose { text-shadow: 0 0 12px rgba(244, 63, 94, 0.8); }
 
-        /* Custom Scrollbar - Siêu mỏng */
         .table-container::-webkit-scrollbar { width: 4px; height: 4px; }
         .table-container::-webkit-scrollbar-track { background: transparent; }
         .table-container::-webkit-scrollbar-thumb { 
@@ -83,7 +80,6 @@
             border-radius: 10px; 
         }
 
-        /* Tùy chỉnh Toolbar ApexCharts - Đặt gọn góc */
         .apexcharts-toolbar {
             background: rgba(15, 23, 42, 0.6) !important;
             backdrop-filter: blur(10px) !important;
@@ -438,7 +434,7 @@
                         <td class="px-4 py-4 text-xs font-mono text-cyan-400 font-bold">${row.colH}</td>
                         <td class="px-4 py-4 text-xs text-slate-300">${row.colI}</td>
                         <td class="px-4 py-4 text-center">
-                            <button onclick="openEditModal('${row.colH}', '${row.colI}')" class="text-amber-500 p-1.5 bg-amber-500/10 rounded-lg border border-amber-500/30 hover:bg-amber-500/20">
+                            <button onclick="openEditModal('${row.row_id}', '${row.colH}', '${row.colI}')" class="text-amber-500 p-1.5 bg-amber-500/10 rounded-lg border border-amber-500/30 hover:bg-amber-500/20">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             </button>
                         </td>`;
@@ -555,18 +551,8 @@
                 colors: ['#6366f1', '#f8fafc', '#ff003c'],
                 xaxis: { categories: labels, labels: { style: { fontSize: '10px', fontWeight: 600 } } },
                 yaxis: [
-                    // Trục 1: Dành cho Actual
-                    { 
-                        title: { text: 'Số lượng PCS' }, 
-                        labels: { formatter: (val) => val.toFixed(0) } 
-                    },
-                    // Trục 2: Dành cho iScala (Thiết lập giống hệt Trục 1 để cột nằm cạnh nhau)
-                    { 
-                        show: false, 
-                        title: { text: '' }, 
-                        labels: { formatter: (val) => val.toFixed(0) } 
-                    },
-                    // Trục 3: Dành cho % Chênh Lệch (Đảo ngược để Trend Line nằm trên cùng)
+                    { title: { text: 'Số lượng PCS' }, labels: { formatter: (val) => val.toFixed(0) } },
+                    { show: false }, 
                     { 
                         opposite: true, 
                         title: { text: 'Tỉ lệ lệch %' }, 
@@ -685,12 +671,14 @@
         }
 
         async function saveEdit() {
-            const oldTag = document.getElementById('edit-tag').getAttribute('data-original-tag') || document.getElementById('edit-tag').value; 
+            const rowId = document.getElementById('edit-tag').getAttribute('data-row-id'); 
             const newTag = document.getElementById('edit-tag').value;
             const newBin = document.getElementById('edit-bin').value;
             const msg = document.getElementById('edit-msg');
             msg.innerHTML = '<span class="text-blue-500">Đang lưu...</span>';
-            const { error } = await supabaseClient.from('inventory').update({ tag_id: newTag, bin: newBin }).eq('tag_id', oldTag);
+            
+            const { error } = await supabaseClient.from('inventory').update({ tag_id: newTag, bin: newBin }).eq('id', rowId);
+            
             if (error) msg.innerHTML = `<span class="text-red-500">Lỗi: ${error.message}</span>`;
             else {
                 msg.innerHTML = `<span class="text-emerald-500">Lưu thành công!</span>`;
@@ -698,10 +686,10 @@
             }
         }
 
-        function openEditModal(tag, bin) {
+        function openEditModal(id, tag, bin) {
             const tagInput = document.getElementById('edit-tag');
             tagInput.value = tag;
-            tagInput.setAttribute('data-original-tag', tag);
+            tagInput.setAttribute('data-row-id', id); 
             document.getElementById('edit-bin').value = bin;
             document.getElementById('edit-msg').innerText = '';
             openModal('modal-edit');
@@ -710,7 +698,6 @@
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
-        // --- NÂNG CẤP: CUSTOM CONFIRM MODAL ---
         function showCustomConfirm(message) {
             return new Promise((resolve) => {
                 const modal = document.getElementById('modal-confirm');
@@ -795,7 +782,7 @@
 </body>
     <footer class="fixed bottom-4 left-0 w-full text-center pointer-events-none">
     <p class="text-[10px] font-futuristic text-slate-500 uppercase tracking-[0.2em] opacity-50 hover:opacity-100 transition-opacity duration-500">
-        Engineered by Vinh © 2026 | Ultra-Premium Inventory Core.
+        Engineered by Vinh © 2026 | Ultra-Premium Inventory Core v5.0
     </p>
 </footer>
 </html>
