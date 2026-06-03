@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-es-vn">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WMS FG PRO | By Vinh Ver1.2</title>
+    <title>WMS FG PRO | By Vinh Ver1.3</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -120,7 +120,6 @@
         .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; opacity: 0; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Toast Notification */
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 10001; display: flex; flex-direction: column; gap: 10px; }
         .toast { padding: 1rem 1.5rem; border-radius: 1rem; color: white; font-weight: 600; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px; min-width: 300px; animation: toastIn 0.4s ease-out forwards; }
         .toast-success { background: linear-gradient(to right, #10b981, #059669); }
@@ -302,7 +301,7 @@
         </div>
     </div>
 
-    <!-- MODALS (Logic giữ nguyên) -->
+    <!-- MODALS (Giữ nguyên logic cũ) -->
     <div id="modal-inbound" class="modal">
         <div class="bg-slate-900 p-6 rounded-3xl w-full max-w-[450px] shadow-2xl border border-slate-700 mx-4">
             <div class="flex justify-between items-center mb-6">
@@ -408,7 +407,7 @@
 
     <script>
         const SUPABASE_URL = 'https://dhlpkycpkndfdgnbdcwn.supabase.co'; 
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRobHBreWNwa25kZmRnbmJkY3duIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwODM2NDgsImV4cCI6MjA5NTY1OTY0OH0.aVbFpwZj6_zYlTqHYds27f9Q7brZn8Ti-0VUOFRuslE'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRobHbreakerskynpkndfdgnbdcwnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwODM2NDgsImV4cCI6MjA5NTY1OTY0OH0.aVbFpwZj6_zYlTqHYds27f9Q7brZn8Ti-0VUOFRuslE'; 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let rawData = [];
@@ -421,16 +420,24 @@
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast ${type === 'success' ? 'toast-success' : 'toast-error'} animate__animated animate__fadeInRight`;
-            toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i> <span>${message}</span>`;
+            
+            // FIX: Kiểm tra lucide tồn tại trước khi gọi để tránh lỗi "lucide is not defined"
+            let iconHtml = '';
+            if (window.lucide) {
+                iconHtml = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>`;
+            }
+            
+            toast.innerHTML = `${iconHmtl} <span>${message}</span>`;
             container.appendChild(toast);
-            lucide.createIcons();
+            
+            if (window.lucide) lucide.createIcons();
+            
             setTimeout(() => {
                 toast.classList.replace('animate__fadeInRight', 'animate__fadeOutRight');
                 setTimeout(() => toast.remove(), 500);
             }, 4000);
         }
 
-        // HÀM FETCH DỮ LIỆU SIÊU BỀN (Xử lý phân trang > 1000 dòng)
         async function fetchAllFromSupabase(tableName) {
             let allData = [];
             let from = 0;
@@ -452,15 +459,12 @@
         async function fetchData() {
             document.getElementById('loading').style.display = 'flex';
             try {
-                // Load từng bảng một để tránh treo hệ thống
                 const detailData = await fetchAllFromSupabase('vw_kho_thanh_pham');
                 const summaryRes = await supabaseClient.from('vw_summary_analysis').select('*');
-                
                 if (summaryRes.error) throw summaryRes.error;
 
                 rawData = detailData;
                 summaryData = summaryRes.data;
-                
                 document.getElementById('last-update').innerText = new Date().toLocaleTimeString('vi-VN');
                 initDashboard();
                 showToast("Đồng bộ dữ liệu thành công!");
@@ -533,7 +537,6 @@
             rawData.forEach(r => {
                 totalActual += Number(r.colC) || 0;
                 if (r.colA === 'No data') noDataCount++;
-                // FIX LOGIC: Đếm kho 50 và 62
                 if (r.colE === '62' || r.colE === '50') moveCount++;
                 if (r.colH) tagFreq[r.colH] = (tagFreq[r.colH] || 0) + 1;
             });
@@ -644,21 +647,12 @@
                         opposite: true, 
                         title: { text: 'Tỉ lệ lệch %', style: { fontSize: '12px', fontWeight: 700, color: '#fff' } }, 
                         labels: { style: { fontSize: '11px', fontWeight: 600 }, formatter: (val) => val + '%' }, 
-                        min: -100,
-                        max: 100,
+                        // FIX: Đưa đường 0% lên đỉnh (8000)
+                        min: -200,
+                        max: 0,
                     }
                 ],
-                annotations: {
-                    yaxis: [{
-                        y: 8000,
-                        borderColor: '#ff003c',
-                        label: {
-                            borderColor: '#ff003c',
-                            style: { color: '#fff', background: '#ff003c', fontSize: '10px' },
-                            text: 'TARGET 8000'
-                        }
-                    }]
-                },
+                // XÓA BỎ TARGET ANNOTATION THEO YÊU CẦU
                 legend: { position: 'top', horizontalAlign: 'right' },
                 tooltip: { theme: 'dark', shared: true, intersect: false }
             });
