@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WMS FG PRO | By Vinh Ver1</title>
+    <title>WMS FG PRO | By Vinh Ver1.1</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -80,16 +80,29 @@
             border-radius: 10px; 
         }
 
+        /* FIX TOOLBAR POSITION */
         .apexcharts-toolbar {
             background: rgba(15, 23, 42, 0.6) !important;
             backdrop-filter: blur(10px) !important;
             border: 1px solid rgba(255, 255, 255, 0.1) !important;
             border-radius: 12px !important;
-            top: 10px !important;
-            right: 10px !important;
+            top: 15px !important;
+            left: 15px !important; /* Đưa sang trái */
+            right: auto !important;
             padding: 4px !important;
         }
         .apexcharts-toolbar svg { fill: #94a3b8 !important; }
+
+        /* ANIMATION FOR PALLET ICON */
+        @keyframes sway {
+            0%, 100% { transform: rotate(-8deg); }
+            50% { transform: rotate(8deg); }
+        }
+        .animate-sway {
+            animation: sway 3s ease-in-out infinite;
+            display: inline-block;
+            transform-origin: bottom center;
+        }
 
         #loading { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -117,12 +130,31 @@
     </div>
 
     <header class="sticky-header p-4 md:p-6 mb-10 flex flex-col md:flex-row justify-between items-start md:items-center shadow-2xl">
-        <div class="mb-4 md:mb-0">
-            <div class="flex items-center gap-2 mb-1">
-                <span class="w-2 h-2 bg-indigo-500 rounded-full animate-ping"></span>
-                <p class="text-[10px] font-bold text-indigo-400 tracking-widest uppercase">Inventory Analysis</p>
+        <div class="flex items-center gap-4 mb-4 md:mb-0">
+            <!-- Pallet Icon with Sway Animation -->
+            <div class="animate-sway w-12 h-12">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-lg">
+                    <!-- Pallet base -->
+                    <path d="M3 17H21V19H3V17Z" fill="#4B5563"/>
+                    <path d="M5 19H7V21H5V19Z" fill="#374151"/>
+                    <path d="M10 19H12V21H10V19Z" fill="#374151"/>
+                    <path d="M15 19H17V21H15V19Z" fill="#374151"/>
+                    <path d="M19 19H21V21H19V19Z" fill="#374151"/>
+                    <!-- Box -->
+                    <rect x="4" y="7" width="16" height="10" rx="2" fill="#6366f1" stroke="#4338CA" stroke-width="1"/>
+                    <!-- Straps (Dây đai) -->
+                    <path d="M8 7V17" stroke="#E2E8F0" stroke-width="1.5" stroke-opacity="0.6"/>
+                    <path d="M16 7V17" stroke="#E2E8F0" stroke-width="1.5" stroke-opacity="0.6"/>
+                    <path d="M4 12H20" stroke="#E2E8F0" stroke-width="1.5" stroke-opacity="0.6"/>
+                </svg>
             </div>
-            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">WMS <span class="text-indigo-500 neon-text-indigo">FG Pro</span></h1>
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="w-2 h-2 bg-indigo-500 rounded-full animate-ping"></span>
+                    <p class="text-[10px] font-bold text-indigo-400 tracking-widest uppercase">Inventory Analysis</p>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">WMS <span class="text-indigo-500 neon-text-indigo">FG Pro</span></h1>
+            </div>
         </div>
         <div class="w-full md:w-auto">
             <div class="grid grid-cols-2 sm:flex gap-3 justify-end items-center">
@@ -170,7 +202,7 @@
         <div class="glass-card p-6 border-b-4 border-amber-500 animate-fade-in" style="animation-delay: 0.4s">
             <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-2">Cần Chuyển Kho</p>
             <h3 class="text-3xl font-black text-amber-500" id="kpi-move">0</h3>
-            <p class="text-[9px] text-amber-400 mt-2 font-bold">(WH 62 & 01)</p>
+            <p class="text-[9px] text-amber-400 mt-2 font-bold">(WH 50 & 62)</p>
         </div>
         <div class="glass-card p-6 border-b-4 border-red-600 animate-fade-in" style="animation-delay: 0.5s">
             <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-2">Trùng TagID</p>
@@ -267,7 +299,7 @@
         </div>
     </div>
 
-    <!-- MODALS -->
+    <!-- MODALS (Giữ nguyên logic cũ) -->
     <div id="modal-inbound" class="modal">
         <div class="bg-slate-900 p-6 rounded-3xl w-full max-w-[450px] shadow-2xl border border-slate-700 mx-4">
             <div class="flex justify-between items-center mb-6">
@@ -345,7 +377,6 @@
         </div>
     </div>
 
-    <!-- MODAL LỰA CHỌN VỊ TRÍ KHI XUẤT TRÙNG -->
     <div id="modal-select-bin" class="modal">
         <div class="bg-slate-900 p-6 rounded-3xl w-full max-w-[450px] shadow-2xl border border-rose-500/30 mx-4">
             <div class="flex justify-between items-center mb-6">
@@ -353,18 +384,15 @@
                 <button onclick="closeModal('modal-select-bin')" class="text-slate-500 hover:text-rose-500 font-bold">X</button>
             </div>
             <p class="text-slate-400 text-xs mb-4">Tag ID này hiện có tại nhiều vị trí. Vui lòng chọn chính xác vị trí cần xuất:</p>
-            <div id="bin-selection-list" class="space-y-3 max-h-60 overflow-y-auto pr-2">
-                <!-- Danh sách Bin sẽ render ở đây -->
-            </div>
+            <div id="bin-selection-list" class="space-y-3 max-h-60 overflow-y-auto pr-2"></div>
             <div id="select-bin-msg" class="text-xs font-bold text-center mt-4 h-4"></div>
         </div>
     </div>
 
-    <!-- CUSTOM CONFIRM MODAL -->
     <div id="modal-confirm" class="modal">
         <div class="bg-slate-900 p-8 rounded-3xl w-full max-w-[400px] shadow-2xl border border-indigo-500/30 mx-4 text-center">
             <div class="w-16 h-16 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-indigo-500/50">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
             </div>
             <h3 class="text-xl font-black text-white mb-2">CẢNH BÁO TRÙNG TAG</h3>
             <p id="confirm-msg" class="text-slate-400 text-sm mb-8 leading-relaxed">Tag ID này đã tồn tại trong hệ thống. Bạn muốn thực hiện thao tác nào?</p>
@@ -377,7 +405,7 @@
 
     <script>
         const SUPABASE_URL = 'https://dhlpkycpkndfdgnbdcwn.supabase.co'; 
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRobHBreWNwa25kZmRnbmJkY3duIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwODM2NDgsImV4cCI6MjA5NTY1OTY0OH0.aVbFpwZj6_zYlTqHYds27f9Q7brZn8Ti-0VUOFRuslE'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRobHbreakerskynpkndfdgnbdcwnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwODM2NDgsImV4cCI6MjA5NTY1OTY0OH0.aVbFpwZj6_zYlTqHYds27f9Q7brZn8Ti-0VUOFRuslE'; 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let rawData = [];
@@ -465,7 +493,8 @@
             rawData.forEach(r => {
                 totalActual += Number(r.colC) || 0;
                 if (r.colA === 'No data') noDataCount++;
-                if (r.colE === '62' || r.colE === '01') moveCount++;
+                // FIX LOGIC: Đếm kho 50 và 62
+                if (r.colE === '62' || r.colE === '50') moveCount++;
                 if (r.colH) tagFreq[r.colH] = (tagFreq[r.colH] || 0) + 1;
             });
 
@@ -556,26 +585,41 @@
                     animations: { enabled: true, easing: 'easeinout', speed: 800 },
                     foreColor: '#94a3b8'
                 },
-                stroke: { width: [0, 0, 4], curve: 'smooth' },
+                stroke: { width: [0, 0, 4], curve: 'smooth' }, // Nét vẽ mềm mại hơn
                 plotOptions: { 
                     bar: { 
                         columnWidth: '60%', 
-                        borderRadius: 4
+                        borderRadius: 6 // Bo góc cột cho mềm mại
                     } 
                 },
                 colors: ['#6366f1', '#f8fafc', '#ff003c'],
                 xaxis: { categories: labels, labels: { style: { fontSize: '10px', fontWeight: 600 } } },
                 yaxis: [
-                    { title: { text: 'Số lượng PCS' }, labels: { formatter: (val) => val.toFixed(0) } },
+                    { 
+                        title: { text: 'Số lượng PCS', style: { fontSize: '12px', fontWeight: 700, color: '#fff' } }, 
+                        labels: { style: { fontSize: '11px', fontWeight: 600 }, formatter: (val) => val.toFixed(0) } 
+                    },
                     { show: false }, 
                     { 
                         opposite: true, 
-                        title: { text: 'Tỉ lệ lệch %' }, 
-                        labels: { formatter: (val) => val + '%' }, 
-                        min: 100,
-                        max: -100,
+                        title: { text: 'Tỉ lệ lệch %', style: { fontSize: '12px', fontWeight: 700, color: '#fff' } }, 
+                        labels: { style: { fontSize: '11px', fontWeight: 600 }, formatter: (val) => val + '%' }, 
+                        min: -100,
+                        max: 100,
                     }
                 ],
+                // THÊM ĐƯỜNG TREND LINE CỐ ĐỊNH Ở MỐC 8000
+                annotations: {
+                    yaxis: [{
+                        y: 8000,
+                        borderColor: '#ff003c',
+                        label: {
+                            borderColor: '#ff003c',
+                            style: { color: '#fff', background: '#ff003c', fontSize: '10px' },
+                            text: 'TARGET 8000'
+                        }
+                    }]
+                },
                 legend: { position: 'top', horizontalAlign: 'right' },
                 tooltip: { theme: 'dark', shared: true, intersect: false }
             });
@@ -584,9 +628,10 @@
             if (pieData.length > 0) {
                 document.getElementById('pie-empty-msg').classList.add('hidden');
                 if (chartPie) chartPie.destroy();
+                // SỬ DỤNG GAM MÀU MINT DỊU NHẸ
                 chartPie = new ApexCharts(document.querySelector("#chart-pie-risk"), {
                     series: pieData, labels: pieLabels, chart: { type: 'donut', height: 380, foreColor: '#94a3b8' },
-                    colors: ['#ff003c', '#fcee0a', '#00f0ff', '#818cf8', '#fb923c'],
+                    colors: ['#a7f3d0', '#6ee7b7', '#10b981', '#34d399', '#d1fae5'], 
                     plotOptions: { pie: { donut: { labels: { show: true, total: { show: true, label: 'TỔNG LỆCH', color: '#fff' } } } } }
                 });
                 chartPie.render();
@@ -769,7 +814,6 @@
             }
         });
 
-        // --- NÂNG CẤP: XỬ LÝ XUẤT KHO TRÙNG TAG ---
         document.getElementById('outbound-tag').addEventListener('keydown', async function(e) {
             if(e.key === 'Enter') {
                 const tag = this.value;
@@ -791,11 +835,9 @@
                 }
 
                 if (results.length === 1) {
-                    // Chỉ có 1 con hàng -> Xóa luôn
                     const { error } = await supabaseClient.from('inventory').delete().eq('id', results[0].id);
                     if (error) alert(error.message); else { this.value = ''; fetchData(); }
                 } else {
-                    // CÓ NHIỀU CON HÀNG TRÙNG TAG -> HIỆN MODAL LỰA CHỌN
                     const listDiv = document.getElementById('bin-selection-list');
                     listDiv.innerHTML = '';
                     
