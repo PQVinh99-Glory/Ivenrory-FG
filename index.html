@@ -176,7 +176,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
-                    HÀNG PHỤ KIỆN
+                    KHO PHỤ KIỆN
                 </button>
                 <button onclick="fetchData()" class="btn-premium bg-slate-800/80 text-white px-5 py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg border border-slate-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
@@ -772,7 +772,7 @@
                 },
                 stroke: { width: [0, 0, 4], curve: 'smooth' }, 
                 plotOptions: { 
-                    bar: { 
+                    box: { 
                         columnWidth: '60%', 
                         borderRadius: 6 
                     } 
@@ -798,8 +798,9 @@
             });
             chartBar.render();
 
+            const pieEmptyMsg = document.getElementById('pie-empty-msg');
             if (pieData.length > 0) {
-                document.getElementById('pie-empty-msg').classList.add('hidden');
+                if (pieEmptyMsg) pieEmptyMsg.classList.add('hidden');
                 if (chartPie) chartPie.destroy();
                 chartPie = new ApexCharts(document.querySelector("#chart-pie-risk"), {
                     series: pieData, labels: pieLabels, chart: { type: 'donut', height: 380, foreColor: '#94a3b8' },
@@ -808,7 +809,7 @@
                 });
                 chartPie.render();
             } else {
-                document.getElementById('pie-empty-msg').classList.remove('hidden');
+                if (pieEmptyMsg) pieEmptyMsg.classList.remove('hidden');
             }
         }
 
@@ -932,8 +933,14 @@
             openModal('modal-edit');
         }
 
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function openModal(id) { 
+            const el = document.getElementById(id);
+            if (el) el.classList.add('active'); 
+        }
+        function closeModal(id) { 
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('active'); 
+        }
 
         function showCustomConfirm(message) {
             return new Promise((resolve) => {
@@ -1078,50 +1085,55 @@
         // Đổ dữ liệu phụ kiện lên bảng
         function renderPhuKienTable(dataToRender) {
             const tbody = document.getElementById('phu-kien-table-body');
-            tbody.innerHTML = '';
-            
-            if (dataToRender.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-slate-500 italic text-xs">Không có dữ liệu phụ kiện phù hợp.</td></tr>`;
-                return;
-            }
+            if (tbody) {
+                tbody.innerHTML = '';
+                
+                if (dataToRender.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-slate-500 italic text-xs">Không có dữ liệu phụ kiện phù hợp.</td></tr>`;
+                    return;
+                }
 
-            dataToRender.forEach(row => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-800/50 border-b border-slate-800/80 transition-colors';
-                tr.innerHTML = `
-                    <td class="px-6 py-4 text-xs font-bold text-slate-300">${row.code || ''}</td>
-                    <td class="px-4 py-4 text-right font-bold text-violet-400">${(Number(row.qty) || 0).toLocaleString()}</td>
-                    <td class="px-4 py-4 text-center text-slate-300 font-mono text-xs">${row.bin || ''}</td>
-                    <td class="px-6 py-4 text-center flex justify-center gap-2">
-                        <button onclick="openPhuKienEditModal('${row.id}', '${row.code}', ${row.qty}, '${row.bin}')" 
-                                class="text-amber-500 p-1.5 bg-amber-500/10 rounded-lg border border-amber-500/30 hover:bg-amber-500/20 text-xs font-bold transition-all flex items-center gap-1">
-                            Sửa
-                        </button>
-                        <button onclick="openPhuKienOutboundModal('${row.id}', '${row.code}', ${row.qty}, '${row.bin}')" 
-                                class="text-rose-500 p-1.5 bg-rose-500/10 rounded-lg border border-rose-500/30 hover:bg-rose-500/20 text-xs font-bold transition-all flex items-center gap-1">
-                            Xuất
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+                dataToRender.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-800/50 border-b border-slate-800/80 transition-colors';
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 text-xs font-bold text-slate-300">${row.code || ''}</td>
+                        <td class="px-4 py-4 text-right font-bold text-violet-400">${(Number(row.qty) || 0).toLocaleString()}</td>
+                        <td class="px-4 py-4 text-center text-slate-300 font-mono text-xs">${row.bin || ''}</td>
+                        <td class="px-6 py-4 text-center flex justify-center gap-2">
+                            <button onclick="openPhuKienEditModal('${row.id}', '${row.code}', ${row.qty}, '${row.bin}')" 
+                                    class="text-amber-500 p-1.5 bg-amber-500/10 rounded-lg border border-amber-500/30 hover:bg-amber-500/20 text-xs font-bold transition-all flex items-center gap-1">
+                                Sửa
+                            </button>
+                            <button onclick="openPhuKienOutboundModal('${row.id}', '${row.code}', ${row.qty}, '${row.bin}')" 
+                                    class="text-rose-500 p-1.5 bg-rose-500/10 rounded-lg border border-rose-500/30 hover:bg-rose-500/20 text-xs font-bold transition-all flex items-center gap-1">
+                                Xuất
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
         }
 
         // Lọc thông minh dữ liệu phụ kiện theo Bin hoặc Code
-        document.getElementById('phu-kien-filter').addEventListener('input', (e) => {
-            const kw = e.target.value.toLowerCase().trim();
-            if (!kw) {
-                renderPhuKienTable(phuKienData);
-                return;
-            }
-            const filtered = phuKienData.filter(r => {
-                return (
-                    String(r.code).toLowerCase().includes(kw) ||
-                    String(r.bin).toLowerCase().includes(kw)
-                );
+        const pkFilterInput = document.getElementById('phu-kien-filter');
+        if (pkFilterInput) {
+            pkFilterInput.addEventListener('input', (e) => {
+                const kw = e.target.value.toLowerCase().trim();
+                if (!kw) {
+                    renderPhuKienTable(phuKienData);
+                    return;
+                }
+                const filtered = phuKienData.filter(r => {
+                    return (
+                        String(r.code).toLowerCase().includes(kw) ||
+                        String(r.bin).toLowerCase().includes(kw)
+                    );
+                });
+                renderPhuKienTable(filtered);
             });
-            renderPhuKienTable(filtered);
-        });
+        }
 
         // Nhập kho phụ kiện (Lưu thời gian thực)
         async function savePhuKienInbound() {
@@ -1131,16 +1143,16 @@
             const msg = document.getElementById('pk-in-msg');
             
             if (!code || !qtyStr || !bin) {
-                msg.innerHTML = `<span class="text-rose-500">Vui lòng điền đủ thông tin!</span>`;
+                if (msg) msg.innerHTML = `<span class="text-rose-500">Vui lòng điền đủ thông tin!</span>`;
                 return;
             }
             const qty = Number(qtyStr);
             if (isNaN(qty) || qty <= 0) {
-                msg.innerHTML = `<span class="text-rose-500">Số lượng phải lớn hơn 0!</span>`;
+                if (msg) msg.innerHTML = `<span class="text-rose-500">Số lượng phải lớn hơn 0!</span>`;
                 return;
             }
             
-            msg.innerHTML = '<span class="text-blue-500">Đang lưu...</span>';
+            if (msg) msg.innerHTML = '<span class="text-blue-500">Đang lưu...</span>';
             try {
                 // Kiểm tra trùng mã code + vị trí bin để cộng dồn
                 const { data: existing, error: findErr } = await supabaseClient
@@ -1166,19 +1178,19 @@
                     if (insErr) throw insErr;
                 }
                 
-                msg.innerHTML = `<span class="text-emerald-500">Lưu thành công!</span>`;
+                if (msg) msg.innerHTML = `<span class="text-emerald-500">Lưu thành công!</span>`;
                 setTimeout(() => {
                     closeModal('modal-phu-kien-inbound');
                     document.getElementById('pk-in-code').value = '';
                     document.getElementById('pk-in-qty').value = '';
                     document.getElementById('pk-in-bin').value = '';
-                    document.getElementById('pk-in-msg').innerHTML = '';
+                    if (msg) msg.innerHTML = '';
                     fetchPhuKienData();
                 }, 800);
                 showToast("Nhập phụ kiện thành công!");
             } catch (err) {
                 console.error(err);
-                msg.innerHTML = `<span class="text-rose-500">Lỗi: ${err.message}</span>`;
+                if (msg) msg.innerHTML = `<span class="text-rose-500">Lỗi: ${err.message}</span>`;
             }
         }
 
@@ -1188,7 +1200,8 @@
             document.getElementById('pk-edit-code').value = code;
             document.getElementById('pk-edit-qty').value = qty;
             document.getElementById('pk-edit-bin').value = bin;
-            document.getElementById('pk-edit-msg').innerHTML = '';
+            const msg = document.getElementById('pk-edit-msg');
+            if (msg) msg.innerHTML = '';
             openModal('modal-phu-kien-edit');
         }
 
@@ -1201,16 +1214,16 @@
             const msg = document.getElementById('pk-edit-msg');
             
             if (!code || !qtyStr || !bin) {
-                msg.innerHTML = `<span class="text-rose-500">Vui lòng điền đủ thông tin!</span>`;
+                if (msg) msg.innerHTML = `<span class="text-rose-500">Vui lòng điền đủ thông tin!</span>`;
                 return;
             }
             const qty = Number(qtyStr);
             if (isNaN(qty) || qty < 0) {
-                msg.innerHTML = `<span class="text-rose-500">Số lượng không hợp lệ!</span>`;
+                if (msg) msg.innerHTML = `<span class="text-rose-500">Số lượng không hợp lệ!</span>`;
                 return;
             }
 
-            msg.innerHTML = '<span class="text-blue-500">Đang cập nhật...</span>';
+            if (msg) msg.innerHTML = '<span class="text-blue-500">Đang cập nhật...</span>';
             try {
                 const { error } = await supabaseClient
                     .from('hang_phu_kien')
@@ -1218,7 +1231,7 @@
                     .eq('id', id);
                 
                 if (error) throw error;
-                msg.innerHTML = `<span class="text-emerald-500">Cập nhật thành công!</span>`;
+                if (msg) msg.innerHTML = `<span class="text-emerald-500">Cập nhật thành công!</span>`;
                 setTimeout(() => {
                     closeModal('modal-phu-kien-edit');
                     fetchPhuKienData();
@@ -1226,7 +1239,7 @@
                 showToast("Cập nhật phụ kiện thành công!");
             } catch (err) {
                 console.error(err);
-                msg.innerHTML = `<span class="text-rose-500">Lỗi: ${err.message}</span>`;
+                if (msg) msg.innerHTML = `<span class="text-rose-500">Lỗi: ${err.message}</span>`;
             }
         }
 
@@ -1238,21 +1251,25 @@
             document.getElementById('pk-out-bin-text').innerText = bin;
             document.getElementById('pk-out-current-qty').innerText = qty;
             document.getElementById('pk-out-qty-input').value = '';
-            document.getElementById('pk-out-msg').innerHTML = '';
-            document.getElementById('pk-out-partial-container').classList.add('hidden');
+            const msg = document.getElementById('pk-out-msg');
+            if (msg) msg.innerHTML = '';
+            
+            const partialContainer = document.getElementById('pk-out-partial-container');
+            if (partialContainer) partialContainer.classList.add('hidden');
             openModal('modal-phu-kien-outbound');
         }
 
         // Hiện ô nhập cho chế độ xuất 1 phần
         function showPartialOutboundInput() {
-            document.getElementById('pk-out-partial-container').classList.remove('hidden');
+            const partialContainer = document.getElementById('pk-out-partial-container');
+            if (partialContainer) partialContainer.classList.remove('hidden');
         }
 
         // Chế độ: Xuất Hết
         async function outboundPhuKienAll() {
             const id = document.getElementById('pk-out-id').value;
             const msg = document.getElementById('pk-out-msg');
-            msg.innerHTML = '<span class="text-blue-500">Đang xử lý...</span>';
+            if (msg) msg.innerHTML = '<span class="text-blue-500">Đang xử lý...</span>';
             
             try {
                 const { error } = await supabaseClient
@@ -1261,7 +1278,7 @@
                     .eq('id', id);
                 if (error) throw error;
                 
-                msg.innerHTML = `<span class="text-emerald-500">Đã xuất hết toàn bộ!</span>`;
+                if (msg) msg.innerHTML = `<span class="text-emerald-500">Đã xuất hết toàn bộ!</span>`;
                 setTimeout(() => {
                     closeModal('modal-phu-kien-outbound');
                     fetchPhuKienData();
@@ -1269,7 +1286,7 @@
                 showToast("Xuất kho toàn phần thành công!");
             } catch (err) {
                 console.error(err);
-                msg.innerHTML = `<span class="text-rose-500">Lỗi: ${err.message}</span>`;
+                if (msg) msg.innerHTML = `<span class="text-rose-500">Lỗi: ${err.message}</span>`;
             }
         }
 
@@ -1281,20 +1298,20 @@
             const msg = document.getElementById('pk-out-msg');
             
             if (!outQtyStr) {
-                msg.innerHTML = `<span class="text-rose-500">Vui lòng nhập số lượng xuất!</span>`;
+                if (msg) msg.innerHTML = `<span class="text-rose-500">Vui lòng nhập số lượng xuất!</span>`;
                 return;
             }
             const outQty = Number(outQtyStr);
             if (isNaN(outQty) || outQty <= 0) {
-                msg.innerHTML = `<span class="text-rose-500">Số lượng xuất không hợp lệ!</span>`;
+                if (msg) msg.innerHTML = `<span class="text-rose-500">Số lượng xuất không hợp lệ!</span>`;
                 return;
             }
             if (outQty > maxQty) {
-                msg.innerHTML = `<span class="text-rose-500">Số lượng xuất lớn hơn số lượng tồn!</span>`;
+                if (msg) msg.innerHTML = `<span class="text-rose-500">Số lượng xuất lớn hơn số lượng tồn!</span>`;
                 return;
             }
 
-            msg.innerHTML = '<span class="text-blue-500">Đang xử lý...</span>';
+            if (msg) msg.innerHTML = '<span class="text-blue-500">Đang xử lý...</span>';
             try {
                 if (outQty === maxQty) {
                     const { error } = await supabaseClient
@@ -1311,7 +1328,7 @@
                     if (error) throw error;
                 }
                 
-                msg.innerHTML = `<span class="text-emerald-500">Xuất kho thành công!</span>`;
+                if (msg) msg.innerHTML = `<span class="text-emerald-500">Xuất kho thành công!</span>`;
                 setTimeout(() => {
                     closeModal('modal-phu-kien-outbound');
                     fetchPhuKienData();
@@ -1319,7 +1336,7 @@
                 showToast("Xuất một phần phụ kiện thành công!");
             } catch (err) {
                 console.error(err);
-                msg.innerHTML = `<span class="text-rose-500">Lỗi: ${err.message}</span>`;
+                if (msg) msg.innerHTML = `<span class="text-rose-500">Lỗi: ${err.message}</span>`;
             }
         }
     </script>
