@@ -202,7 +202,7 @@
             </div>
             <p class="text-[9px] text-slate-500 mt-2 uppercase font-bold">vs iScala</p>
         </div>
-        <div class="glass-card p-6 border-b-4 border-rose-500 animate-fade-in" style="animation-delay: 0.3s">
+        <div class="glass-card p-6 border-b-4 border-rose-500/80 animate-fade-in" style="animation-delay: 0.3s">
             <p class="text-[10px] font-extrabold text-slate-400 uppercase mb-2">TagID Không khớp</p>
             <h3 class="text-3xl font-black text-rose-500 neon-text-rose" id="kpi-nodata">0</h3>
             <p class="text-[9px] text-rose-400 mt-2 uppercase font-bold">No Data</p>
@@ -1054,7 +1054,7 @@
             renderCharts();
         }
 
-        // ==================== JAVASCRIPT: LOGIC QUẢN LÝ HÀNG PHỤ KIỆN ====================
+        // ==================== JAVASCRIPT: LOGIC QUẢN LÝ HÀNG PHỤ KIỆN (CHUẨN HÓA) ====================
 
         // Mở cửa sổ quản lý phụ kiện
         async function openPhuKienModal() {
@@ -1062,10 +1062,10 @@
             await fetchPhuKienData();
         }
 
-        // Tải dữ liệu phụ kiện từ bảng hàng_phu_kiện trên Supabase
+        // Tải dữ liệu phụ kiện từ bảng hang_phu_kien (không dấu) trên Supabase
         async function fetchPhuKienData() {
             try {
-                const { data, error } = await supabaseClient.from('hàng_phu_kiện').select('*');
+                const { data, error } = await supabaseClient.from('hang_phu_kien').select('*');
                 if (error) throw error;
                 phuKienData = data || [];
                 renderPhuKienTable(phuKienData);
@@ -1144,7 +1144,7 @@
             try {
                 // Kiểm tra trùng mã code + vị trí bin để cộng dồn
                 const { data: existing, error: findErr } = await supabaseClient
-                    .from('hàng_phu_kiện')
+                    .from('hang_phu_kien')
                     .select('*')
                     .eq('code', code)
                     .eq('bin', bin)
@@ -1155,13 +1155,13 @@
                 if (existing) {
                     const newQty = (Number(existing.qty) || 0) + qty;
                     const { error: updErr } = await supabaseClient
-                        .from('hàng_phu_kiện')
+                        .from('hang_phu_kien')
                         .update({ qty: newQty })
                         .eq('id', existing.id);
                     if (updErr) throw updErr;
                 } else {
                     const { error: insErr } = await supabaseClient
-                        .from('hàng_phu_kiện')
+                        .from('hang_phu_kien')
                         .insert([{ code, qty, bin }]);
                     if (insErr) throw insErr;
                 }
@@ -1213,7 +1213,7 @@
             msg.innerHTML = '<span class="text-blue-500">Đang cập nhật...</span>';
             try {
                 const { error } = await supabaseClient
-                    .from('hàng_phu_kiện')
+                    .from('hang_phu_kien')
                     .update({ code, qty, bin })
                     .eq('id', id);
                 
@@ -1256,7 +1256,7 @@
             
             try {
                 const { error } = await supabaseClient
-                    .from('hàng_phu_kiện')
+                    .from('hang_phu_kien')
                     .delete()
                     .eq('id', id);
                 if (error) throw error;
@@ -1297,17 +1297,15 @@
             msg.innerHTML = '<span class="text-blue-500">Đang xử lý...</span>';
             try {
                 if (outQty === maxQty) {
-                    // Nếu xuất bằng đúng số lượng tồn, xóa luôn dòng
                     const { error } = await supabaseClient
-                        .from('hàng_phu_kiện')
+                        .from('hang_phu_kien')
                         .delete()
                         .eq('id', id);
                     if (error) throw error;
                 } else {
-                    // Ngược lại trừ bớt đi và cập nhật tồn còn lại
                     const remaining = maxQty - outQty;
                     const { error } = await supabaseClient
-                        .from('hàng_phu_kiện')
+                        .from('hang_phu_kien')
                         .update({ qty: remaining })
                         .eq('id', id);
                     if (error) throw error;
