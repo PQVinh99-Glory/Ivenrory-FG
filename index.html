@@ -23,7 +23,6 @@
         }
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            /* Đảm bảo file wallpaper4k.png nằm cùng thư mục với index.html trên GitHub */
             background-image: linear-gradient(rgba(248, 250, 252, 0.9), rgba(248, 250, 252, 0.9)), 
                               url('wallpaper4k.png'); 
             background-size: cover;
@@ -113,7 +112,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        /* Hiệu ứng đung đưa cho Logo */
         @keyframes sway {
             0%, 100% { transform: rotate(-5deg); }
             50% { transform: rotate(5deg); }
@@ -129,6 +127,23 @@
     <div id="app">
         <div id="toast-container" class="fixed top-5 right-5 z-[10001] flex flex-col gap-3"></div>
         
+        <!-- GLOBAL ALERT/CONFIRM MODAL (Thay thế hoàn toàn alert/confirm trình duyệt) -->
+        <div id="modal-global-notify" class="modal">
+            <div class="bg-white p-8 rounded-3xl w-full max-w-[420px] shadow-2xl border border-slate-200 mx-4 text-center">
+                <div :class="['w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6', globalNotify.type === 'confirm' ? 'bg-indigo-100 text-indigo-600' : 'bg-rose-100 text-rose-600']">
+                    <i :data-lucide="globalNotify.type === 'confirm' ? 'help-circle' : 'alert-circle'" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-xl font-black text-slate-800 mb-2">{{ globalNotify.title }}</h3>
+                <p class="text-slate-500 text-sm mb-8 leading-relaxed">{{ globalNotify.message }}</p>
+                <div class="flex gap-3">
+                    <button v-if="globalNotify.type === 'confirm'" @click="handleGlobalResponse(false)" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-2xl text-xs font-bold hover:bg-slate-200 transition-all">HỦY BỎ</button>
+                    <button @click="handleGlobalResponse(true)" :class="['flex-1 py-3 rounded-2xl text-xs font-bold transition-all shadow-lg', globalNotify.type === 'confirm' ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-rose-600 text-white hover:bg-rose-700']">
+                        {{ globalNotify.type === 'confirm' ? 'XÁC NHẬN' : 'ĐÃ HIỂU' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div v-if="loading" id="loading">
             <div class="spinner"></div>
             <p class="font-black text-indigo-600 animate-pulse uppercase tracking-[0.3em] text-sm">Syncing Data...</p>
@@ -136,15 +151,11 @@
 
         <header class="sticky-header-light p-4 md:p-6 mb-10 flex flex-col md:flex-row justify-between items-start md:items-center">
             <div class="flex items-center gap-4 mb-4 md:mb-0">
-                <!-- LOGO NÂNG CẤP: To hơn, không nền, đung đưa, màu gỗ/xanh lá -->
                 <div class="animate-sway w-16 h-16">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-md">
-                        <!-- Pallet (Xám gỗ) -->
                         <path d="M3 17H21V19H3V17Z" fill="#94a3b8"/>
                         <path d="M5 19H7V21H5V19ZM10 19H12V21H10V19ZM15 19H17V21H15V19ZM19 19H21V21H19V19Z" fill="#64748b"/>
-                        <!-- Thùng hàng (Vàng Gỗ) -->
                         <rect x="4" y="6" width="16" height="11" rx="1" fill="#facc15" stroke="#ca8a04" stroke-width="1"/>
-                        <!-- Đai siết (Xanh Lá) -->
                         <path d="M8 6V17" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/>
                         <path d="M16 6V17" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/>
                         <path d="M4 11H20" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/>
@@ -351,7 +362,7 @@
             </div>
         </div>
 
-        <!-- MODALS (Giữ nguyên cấu trúc) -->
+        <!-- MODALS -->
         <div id="modal-quick-out" class="modal">
             <div class="bg-white p-8 rounded-3xl w-full max-w-[400px] shadow-2xl border border-slate-200 mx-4 text-center">
                 <div class="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-6 text-rose-600">
@@ -605,6 +616,15 @@
                 const kpi = reactive({ totalActual: 0, diff: 0, diffPercent: '0%', noData: 0, move: 0, duplicates: 0 });
                 const analysis = reactive({ noData: [], lowStock: [], duplicates: [], midStock: [] });
                 
+                // GLOBAL NOTIFY STATE
+                const globalNotify = reactive({
+                    active: false,
+                    type: 'confirm', // 'confirm' hoặc 'alert'
+                    title: '',
+                    message: '',
+                    resolve: null
+                });
+
                 const inboundBin = ref('');
                 const inboundTag = ref('');
                 const inboundMsg = ref('');
@@ -629,6 +649,37 @@
                 const pkOutMsg = ref('');
 
                 let chartBar = null, chartPie = null;
+
+                // --- HÀM XỬ LÝ THÔNG BÁO CHUYÊN NGHIỆP ---
+                const customAlert = (title, message) => {
+                    return new Promise((resolve) => {
+                        globalNotify.type = 'alert';
+                        globalNotify.title = title || 'Thông báo';
+                        globalNotify.message = message;
+                        globalNotify.resolve = resolve;
+                        document.getElementById('modal-global-notify').classList.add('active');
+                        nextTick(() => lucide.createIcons());
+                    });
+                };
+
+                const customConfirm = (title, message) => {
+                    return new Promise((resolve) => {
+                        globalNotify.type = 'confirm';
+                        globalNotify.title = title || 'Xác nhận';
+                        globalNotify.message = message;
+                        globalNotify.resolve = resolve;
+                        document.getElementById('modal-global-notify').classList.add('active');
+                        nextTick(() => lucide.createIcons());
+                    });
+                };
+
+                const handleGlobalResponse = (response) => {
+                    document.getElementById('modal-global-notify').classList.remove('active');
+                    if (globalNotify.resolve) {
+                        globalNotify.resolve(response);
+                    }
+                };
+                // ----------------------------------------
 
                 const groupedData = computed(() => {
                     const filtered = rawData.value.filter(r => {
@@ -757,7 +808,6 @@
                         chart: { height: 380, type: 'line', toolbar: { show: false }, animations: { enabled: true, speed: 800 } },
                         stroke: { width: [0, 0, 4], curve: 'smooth' },
                         plotOptions: { bar: { borderRadius: 8, columnWidth: '60%' } },
-                        // ĐÃ THAY ĐỔI: Cột iScala sang màu Xanh lá (#10b981)
                         colors: ['#6366f1', '#10b981', '#f43f5e'], 
                         xaxis: { categories: labels },
                         yaxis: [
@@ -807,8 +857,9 @@
                     const bin = inboundBin.value;
                     const { data: existing } = await supabaseClient.from('inventory').select('bin').eq('tag_id', tag).maybeSingle();
                     if (existing) {
-                        const confirm = window.confirm(`Tag ${tag} đang ở ${existing.bin}. Bạn muốn đổi sang ${bin}?`);
-                        if (confirm) await supabaseClient.from('inventory').update({ bin }).eq('tag_id', tag);
+                        // THAY THẾ window.confirm bằng customConfirm
+                        const confirmed = await customConfirm('Xác nhận đổi vị trí', `Tag ${tag} hiện đang ở ${existing.bin}. Bạn có chắc chắn muốn đổi sang vị trí ${bin}?`);
+                        if (confirmed) await supabaseClient.from('inventory').update({ bin }).eq('tag_id', tag);
                         else await supabaseClient.from('inventory').insert([{ tag_id: tag, bin }]);
                     } else await supabaseClient.from('inventory').insert([{ tag_id: tag, bin }]);
                     inboundTag.value = '';
@@ -817,7 +868,10 @@
 
                 const uploadInboundCSV = async () => {
                     const file = document.querySelector('#file-inbound').files[0];
-                    if (!file) return;
+                    if (!file) {
+                        await customAlert('Thiếu file', 'Vui lòng chọn file CSV để nhập kho!');
+                        return;
+                    }
                     Papa.parse(file, {
                         header: true,
                         complete: async (results) => {
@@ -834,7 +888,10 @@
 
                 const uploadData = async () => {
                     const file = document.querySelector('#file-master').files[0];
-                    if (!file) return;
+                    if (!file) {
+                        await customAlert('Thiếu file', 'Vui lòng chọn file CSV nguồn!');
+                        return;
+                    }
                     uploadStatus.value = 'Đang xử lý...';
                     try {
                         await supabaseClient.from('master_data').delete().neq('tag_id', '0');
@@ -860,7 +917,10 @@
                     const tag = outboundTag.value;
                     if (!tag) return;
                     const { data: results } = await supabaseClient.from('inventory').select('id, bin').eq('tag_id', tag);
-                    if (!results || results.length === 0) { alert("Không tìm thấy Tag!"); return; }
+                    if (!results || results.length === 0) { 
+                        await customAlert('Không tìm thấy', 'Tag ID này không tồn tại trong hệ thống!');
+                        return; 
+                    }
                     if (results.length === 1) {
                         await supabaseClient.from('inventory').delete().eq('id', results[0].id);
                         outboundTag.value = '';
@@ -952,7 +1012,10 @@
 
                 const pkOutPartialSubmit = async () => {
                     const remaining = pkOut.qty - pkOutQty.value;
-                    if (remaining < 0) return alert("Số lượng xuất lớn hơn tồn!");
+                    if (remaining < 0) {
+                        await customAlert('Lỗi số lượng', 'Số lượng xuất không được lớn hơn số lượng tồn kho!');
+                        return;
+                    }
                     if (remaining === 0) await supabaseClient.from('hang_phu_kien').delete().eq('id', pkOut.id);
                     else await supabaseClient.from('hang_phu_kien').update({ qty: remaining }).eq('id', pkOut.id);
                     closeModal('modal-phu-kien-outbound');
@@ -1008,7 +1071,8 @@
                     quickOutbound, quickOutTarget, confirmQuickOut,
                     openPhuKienModal, pkFilter, pkIn, pkInMsg, savePkInbound,
                     pkEdit, pkEditMsg, openPhuKienEdit, savePkEdit,
-                    pkOut, pkOutQty, pkOutPartial, pkOutMsg, openPhuKienOut, pkOutAll, pkOutPartialSubmit
+                    pkOut, pkOutQty, pkOutPartial, pkOutMsg, openPhuKienOut, pkOutAll, pkOutPartialSubmit,
+                    globalNotify, handleGlobalResponse
                 };
             }
         }).mount('#app');
