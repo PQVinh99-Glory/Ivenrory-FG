@@ -434,7 +434,6 @@
                 <div class="space-y-4">
                     <div class="p-4 border-2 border-dashed border-indigo-100 rounded-2xl bg-indigo-50/30">
                         <label class="block text-xs font-bold text-indigo-600 mb-2">File: Stock Balance With Batch.csv</label>
-                        <!-- SỬA LỖI: Dùng ref="fileMaster" và đảm bảo JS gọi đúng ref này -->
                         <input type="file" ref="fileMaster" accept=".csv" class="text-xs w-full text-slate-400">
                         <p class="text-[10px] text-slate-500 mt-2">Xóa toàn bộ dữ liệu cũ & cập nhật mới.</p>
                     </div>
@@ -646,7 +645,6 @@
                 const selectBinList = ref([]);
                 const quickOutTarget = ref(null);
 
-                // Refs for file inputs (SỬA LỖI TẠI ĐÂY)
                 const fileMaster = ref(null);
                 const fileInbound = ref(null);
 
@@ -904,21 +902,17 @@
                     });
                 };
 
-                // --- SỬA LỖI MODULE CẬP NHẬT NGUỒN TẠI ĐÂY ---
                 const uploadData = async () => {
-                    const file = fileMaster.value.files[0]; // Sử dụng ref đúng
+                    const file = fileMaster.value.files[0];
                     if (!file) {
                         await customAlert('Thiếu file', 'Vui lòng chọn file CSV nguồn!');
                         return;
                     }
                     uploadStatus.value = 'Đang xử lý...';
                     try {
-                        // 1. Xóa toàn bộ dữ liệu cũ trong bảng master_data
-                        // Dùng .neq('tag_id', '0') là mẹo để xóa hết vì Supabase yêu cầu filter
                         const { error: delError } = await supabaseClient.from('master_data').delete().neq('tag_id', '0');
                         if (delError) throw delError;
 
-                        // 2. Parse file CSV và convert định dạng
                         Papa.parse(file, {
                             header: true,
                             skipEmptyLines: true,
@@ -937,7 +931,6 @@
                                         return;
                                     }
 
-                                    // 3. Update dữ liệu mới vào bảng master_data
                                     const { error: insError } = await supabaseClient.from('master_data').insert(formatted);
                                     if (insError) throw insError;
 
@@ -1003,14 +996,21 @@
                     }
                 };
 
+                // --- FIX DEBUG LOGIC XUẤT EXCEL TẠI ĐÂY ---
                 const exportTableToExcel = async () => {
                     const wb = XLSX.utils.book_new();
-                    const data1 = rawData.value.map(r => ({ "Stock Code": r.colA, "Feature": r.colB, "Qty": r.colC, "Bin": r.colI, "Tag": r.colH }));
+                    
+                    // Lấy toàn bộ dữ liệu gốc từ rawData (không dùng .map để lọc cột)
+                    // Điều này sẽ xuất ra đúng định dạng tất cả các trường từ vw_kho_thanh_pham
+                    const data1 = rawData.value; 
+                    
                     const ws1 = XLSX.utils.json_to_sheet(data1);
                     XLSX.utils.book_append_sheet(wb, ws1, "Tồn Kho");
+
                     const { data: pkres } = await supabaseClient.from('hang_phu_kien').select('*');
                     const ws2 = XLSX.utils.json_to_sheet(pkres || []);
                     XLSX.utils.book_append_sheet(wb, ws2, "Phụ Kiện");
+                    
                     XLSX.writeFile(wb, `Report_${new Date().toLocaleDateString()}.xlsx`);
                 };
 
@@ -1119,7 +1119,7 @@
                     pkEdit, pkEditMsg, openPhuKienEdit, savePkEdit,
                     pkOut, pkOutQty, pkOutPartial, pkOutMsg, openPhuKienOut, pkOutAll, pkOutPartialSubmit,
                     globalNotify, handleGlobalResponse,
-                    fileMaster, fileInbound // Export refs để Vue nhận diện
+                    fileMaster, fileInbound 
                 };
             }
         }).mount('#app');
