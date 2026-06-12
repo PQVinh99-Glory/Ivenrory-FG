@@ -127,7 +127,7 @@
     <div id="app">
         <div id="toast-container" class="fixed top-5 right-5 z-[10001] flex flex-col gap-3"></div>
         
-        <!-- GLOBAL ALERT/CONFIRM MODAL (Thay thế hoàn toàn alert/confirm trình duyệt) -->
+        <!-- GLOBAL ALERT/CONFIRM MODAL -->
         <div id="modal-global-notify" class="modal">
             <div class="bg-white p-8 rounded-3xl w-full max-w-[420px] shadow-2xl border border-slate-200 mx-4 text-center">
                 <div :class="['w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6', globalNotify.type === 'confirm' ? 'bg-indigo-100 text-indigo-600' : 'bg-rose-100 text-rose-600']">
@@ -136,9 +136,12 @@
                 <h3 class="text-xl font-black text-slate-800 mb-2">{{ globalNotify.title }}</h3>
                 <p class="text-slate-500 text-sm mb-8 leading-relaxed">{{ globalNotify.message }}</p>
                 <div class="flex gap-3">
-                    <button v-if="globalNotify.type === 'confirm'" @click="handleGlobalResponse(false)" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-2xl text-xs font-bold hover:bg-slate-200 transition-all">HỦY BỎ</button>
+                    <!-- Cập nhật: Sử dụng nhãn nút tùy chỉnh từ globalNotify -->
+                    <button v-if="globalNotify.type === 'confirm'" @click="handleGlobalResponse(false)" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-2xl text-xs font-bold hover:bg-slate-200 transition-all">
+                        {{ globalNotify.cancelText }}
+                    </button>
                     <button @click="handleGlobalResponse(true)" :class="['flex-1 py-3 rounded-2xl text-xs font-bold transition-all shadow-lg', globalNotify.type === 'confirm' ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-rose-600 text-white hover:bg-rose-700']">
-                        {{ globalNotify.type === 'confirm' ? 'XÁC NHẬN' : 'ĐÃ HIỂU' }}
+                        {{ globalNotify.confirmText }}
                     </button>
                 </div>
             </div>
@@ -474,7 +477,7 @@
             </div>
         </div>
 
-        <!-- Phụ Kiện (Giữ nguyên) -->
+        <!-- Phụ Kiện -->
         <div id="modal-phu-kien" class="modal">
             <div class="bg-white p-6 rounded-3xl w-full max-w-[1000px] h-[85vh] flex flex-col shadow-2xl border border-slate-200 mx-4 overflow-hidden relative">
                 <div class="flex justify-between items-center mb-6">
@@ -516,7 +519,7 @@
             </div>
         </div>
 
-        <!-- Phụ kiện Modals (Giữ nguyên) -->
+        <!-- Phụ kiện Modals -->
         <div id="modal-phu-kien-inbound" class="modal">
             <div class="bg-white p-6 rounded-3xl w-full max-w-[400px] shadow-2xl border border-slate-200 mx-4">
                 <div class="flex justify-between items-center mb-6">
@@ -616,12 +619,14 @@
                 const kpi = reactive({ totalActual: 0, diff: 0, diffPercent: '0%', noData: 0, move: 0, duplicates: 0 });
                 const analysis = reactive({ noData: [], lowStock: [], duplicates: [], midStock: [] });
                 
-                // GLOBAL NOTIFY STATE
+                // GLOBAL NOTIFY STATE (Nâng cấp thêm nhãn nút)
                 const globalNotify = reactive({
                     active: false,
-                    type: 'confirm', // 'confirm' hoặc 'alert'
+                    type: 'confirm', 
                     title: '',
                     message: '',
+                    confirmText: 'XÁC NHẬN',
+                    cancelText: 'HỦY BỎ',
                     resolve: null
                 });
 
@@ -650,23 +655,26 @@
 
                 let chartBar = null, chartPie = null;
 
-                // --- HÀM XỬ LÝ THÔNG BÁO CHUYÊN NGHIỆP ---
+                // --- HÀM XỬ LÝ THÔNG BÁO (Cập nhật để nhận nhãn nút tùy chỉnh) ---
                 const customAlert = (title, message) => {
                     return new Promise((resolve) => {
                         globalNotify.type = 'alert';
                         globalNotify.title = title || 'Thông báo';
                         globalNotify.message = message;
+                        globalNotify.confirmText = 'ĐÃ HIỂU';
                         globalNotify.resolve = resolve;
                         document.getElementById('modal-global-notify').classList.add('active');
                         nextTick(() => lucide.createIcons());
                     });
                 };
 
-                const customConfirm = (title, message) => {
+                const customConfirm = (title, message, confirmText = 'XÁC NHẬN', cancelText = 'HỦY BỎ') => {
                     return new Promise((resolve) => {
                         globalNotify.type = 'confirm';
                         globalNotify.title = title || 'Xác nhận';
                         globalNotify.message = message;
+                        globalNotify.confirmText = confirmText;
+                        globalNotify.cancelText = cancelText;
                         globalNotify.resolve = resolve;
                         document.getElementById('modal-global-notify').classList.add('active');
                         nextTick(() => lucide.createIcons());
@@ -857,8 +865,13 @@
                     const bin = inboundBin.value;
                     const { data: existing } = await supabaseClient.from('inventory').select('bin').eq('tag_id', tag).maybeSingle();
                     if (existing) {
-                        // THAY THẾ window.confirm bằng customConfirm
-                        const confirmed = await customConfirm('Xác nhận đổi vị trí', `Tag ${tag} hiện đang ở ${existing.bin}. Bạn có chắc chắn muốn đổi sang vị trí ${bin}?`);
+                        // CẬP NHẬT: Truyền nhãn nút tùy chỉnh "ĐỔI VỊ TRÍ" và "GHI THÊM"
+                        const confirmed = await customConfirm(
+                            'Tag ID bị trùng', 
+                            `Tag ${tag} hiện đang ở vị trí ${existing.bin}. Bạn muốn xử lý như thế nào?`,
+                            'ĐỔI VỊ TRÍ', 
+                            'GHI THÊM'
+                        );
                         if (confirmed) await supabaseClient.from('inventory').update({ bin }).eq('tag_id', tag);
                         else await supabaseClient.from('inventory').insert([{ tag_id: tag, bin }]);
                     } else await supabaseClient.from('inventory').insert([{ tag_id: tag, bin }]);
